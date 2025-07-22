@@ -12,12 +12,10 @@ using Newtonsoft.Json;
 
 public class Program
 {
-    private readonly ConsoleAppConfiguration _configuration;
     private readonly ICourseRepository _courseRepository;
 
-    public Program(IOptions<ConsoleAppConfiguration> configuration, ICourseRepository courseRepository)
+    public Program(ICourseRepository courseRepository)
     {
-        _configuration = configuration.Value ?? throw new ArgumentNullException(nameof(configuration), "Configuration cannot be null.");
         _courseRepository = courseRepository;
     }
 

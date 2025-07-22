@@ -1,13 +1,25 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EFAcceleratorTools.Select.Helpers;
 
+/// <summary>
+/// Provides utilities for dynamically generating LINQ select expressions based on a set of property names.
+/// Useful for scenarios where only specific fields of an object need to be projected at runtime.
+/// </summary>
 public static class SelectHelper
 {
     private static List<string> _avaibleParameters = Enumerable.Empty<string>().ToList();
 
+    /// <summary>
+    /// Generates a dynamic select expression for the specified type, projecting only the given fields.
+    /// </summary>
+    /// <typeparam name="T">The type of the entity to project.</typeparam>
+    /// <param name="fields">The names of the fields to include in the projection. Supports nested properties using dot notation.</param>
+    /// <returns>
+    /// An expression that can be used to select only the specified fields from an object of type <typeparamref name="T"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="fields"/> is null or empty.</exception>
     public static Expression<Func<T, T>> DynamicSelectGenerator<T>(string[] fields)
     {
         if (fields is null || !fields.Any()) throw new ArgumentNullException(nameof(fields), "fields cannot be empty.");
