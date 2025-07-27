@@ -1,5 +1,4 @@
-﻿using EFAcceleratorTools.Examples.Configs;
-using EFAcceleratorTools.Examples.Domain.Aggregates.Courses.Selects;
+﻿using EFAcceleratorTools.Examples.Domain.Aggregates.Courses.Selects;
 using EFAcceleratorTools.Examples.Infrastructure.Data;
 using EFAcceleratorTools.Examples.Infrastructure.Data.Context;
 using EFAcceleratorTools.Examples.Infrastructure.Data.Repositories.Aggregates.Courses;
@@ -7,7 +6,6 @@ using EFAcceleratorTools.Examples.Infrastructure.IoC;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 public class Program

@@ -89,10 +89,24 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     Task UpdateAsync(TEntity entity);
 
     /// <summary>
+    /// Asynchronously updates a new entity and commits the changes.
+    /// </summary>
+    /// <param name="entity">The entity to add.</param>
+    /// <returns>The updated entity.</returns>
+    Task<TEntity> UpdateAndCommitAsync(TEntity entity);
+
+    /// <summary>
     /// Asynchronously updates a range of entities.
     /// </summary>
     /// <param name="entities">The entities to update.</param>
     Task UpdateRangeAsync(ICollection<TEntity> entities);
+
+    /// <summary>
+    /// Asynchronously updates a range of entities and commits the changes.
+    /// </summary>
+    /// <param name="entities">The entities to update.</param>
+    /// <returns>The updated entities.</returns>
+    Task<ICollection<TEntity>> UpdateRangeAndCommitAsync(ICollection<TEntity> entities);
 
     #endregion
 
@@ -103,6 +117,12 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// </summary>
     /// <param name="id">The unique identifier of the entity to remove.</param>
     Task RemoveAsync(long id);
+
+    /// <summary>
+    /// Asynchronously removes an entity by its unique identifier and commits the changes.
+    /// </summary>
+    /// <param name="id">The unique identifier of the entity to remove.</param>
+    Task RemoveAndCommitAsync(long id);
 
     #endregion
 

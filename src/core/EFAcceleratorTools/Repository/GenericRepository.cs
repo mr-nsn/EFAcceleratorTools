@@ -127,12 +127,36 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     }
 
     /// <inheritdoc/>
+    public virtual async Task<TEntity> UpdateAndCommitAsync(TEntity entity)
+    {
+        await Task.Run(() =>
+        {
+            _dbSet.Update(entity);
+            _context.SaveChanges();
+        });
+
+        return entity;
+    }    
+
+    /// <inheritdoc/>
     public virtual async Task UpdateRangeAsync(ICollection<TEntity> entities)
     {
         await Task.Run(() =>
         {
             _dbSet.UpdateRange(entities);
         });
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task<ICollection<TEntity>> UpdateRangeAndCommitAsync(ICollection<TEntity> entities)
+    {
+        await Task.Run(() =>
+        {
+            _dbSet.UpdateRange(entities);
+            _context.SaveChanges();
+        });
+
+        return entities;
     }
 
     #endregion
@@ -144,6 +168,14 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     {
         var entity = await GetByIdAsync(id) ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
         _dbSet.Remove(entity);
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task RemoveAndCommitAsync(long id)
+    {
+        var entity = await GetByIdAsync(id) ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
+        _dbSet.Remove(entity);
+        _context.SaveChanges();
     }
 
     #endregion
