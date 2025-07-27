@@ -11,7 +11,8 @@ public static class DbInitializer
 {
     public static async Task SeedAsync(DataContext context)
     {
-        context.Database.Migrate();
+        if (context.Database.IsRelational())
+            context.Database.Migrate();
 
         if (context.Courses.Any())
             return;        
