@@ -227,13 +227,13 @@ public class GenericRepositoryTest
         Assert.True(_courseFixture.Context.ChangeTracker.AutoDetectChangesEnabled);
     }
 
-    [Theory(DisplayName = "CourseRepository - FindAsync - Should return courses matching the predicate")]
+    [Theory(DisplayName = "CourseRepository - FindAllAsync - Should return courses matching the predicate")]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
-    public async Task FindAsync_ShouldReturnMatchingCourses(List<Course> courses)
+    public async Task FindAllAsync_ShouldReturnMatchingCourses(List<Course> courses)
     {
         // Arrange
         await _courseFixture.RepositoryImpl.AddRangeAndCommitAsync(courses);
@@ -242,20 +242,20 @@ public class GenericRepositoryTest
         var expected = courses.Where(c => c.Title != null && c.Title.Contains("Test")).ToList();
 
         // Act
-        var results = await _courseFixture.RepositoryImpl.FindAsync(c => c.Title != null && c.Title.Contains("Test"));
+        var results = await _courseFixture.RepositoryImpl.FindAllAsync(c => c.Title != null && c.Title.Contains("Test"));
 
         // Assert
         Assert.Equal(expected.Count, results.Count);
         Assert.All(results, course => Assert.Contains("Test", course.Title));
     }
 
-    [Theory(DisplayName = "CourseRepository - FindByAsync - Should return a single course matching the predicate")]
+    [Theory(DisplayName = "CourseRepository - FindFirstAsync - Should return a single course matching the predicate")]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
-    public async Task FindByAsync_ShouldReturnSingleMatchingCourse(List<Course> courses)
+    public async Task FindFirstAsync_ShouldReturnSingleMatchingCourse(List<Course> courses)
     {
         // Arrange
         await _courseFixture.RepositoryImpl.AddRangeAndCommitAsync(courses);
@@ -266,7 +266,7 @@ public class GenericRepositoryTest
             return; // No valid course to test
 
         // Act
-        var result = await _courseFixture.RepositoryImpl.FindByAsync(c => c.Title == expected.Title);
+        var result = await _courseFixture.RepositoryImpl.FindFirstAsync(c => c.Title == expected.Title);
 
         // Assert
         Assert.NotNull(result);

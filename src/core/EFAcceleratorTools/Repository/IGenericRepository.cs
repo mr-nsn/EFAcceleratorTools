@@ -53,14 +53,14 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// </summary>
     /// <param name="predicate">The filter expression.</param>
     /// <returns>A collection of matching entities.</returns>
-    Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
+    Task<ICollection<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate);
 
     /// <summary>
     /// Asynchronously finds a single entity matching the specified predicate.
     /// </summary>
     /// <param name="predicate">The filter expression.</param>
     /// <returns>The entity if found; otherwise, <c>null</c>.</returns>
-    Task<TEntity?> FindByAsync(Expression<Func<TEntity, bool>> predicate);
+    Task<TEntity?> FindFirstAsync(Expression<Func<TEntity, bool>> predicate);
 
     #endregion
 

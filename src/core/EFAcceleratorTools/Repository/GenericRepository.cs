@@ -73,13 +73,13 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ICollection<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
+    public virtual async Task<ICollection<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate)
     {
         return await Task.FromResult(_dbSet.AsNoTracking().Where(predicate).ToList());
     }
 
     /// <inheritdoc/>
-    public virtual async Task<TEntity?> FindByAsync(Expression<Func<TEntity, bool>> predicate)
+    public virtual async Task<TEntity?> FindFirstAsync(Expression<Func<TEntity, bool>> predicate)
     {
         return await Task.FromResult(_dbSet.AsNoTracking().FirstOrDefault(predicate));
     }
