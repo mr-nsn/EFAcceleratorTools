@@ -5,7 +5,7 @@ namespace EFAcceleratorTools.Test.Fixtures;
 
 public class DataContextFixture
 {
-    public DataContext ObterDataContext()
+    public DataContext GetDataContext()
     {
         var options = new DbContextOptionsBuilder<DataContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -16,5 +16,10 @@ public class DataContextFixture
         context.Database.EnsureCreated();
 
         return context;
+    }
+
+    public DataContextFactory GetDataContextFactory()
+    {
+        return new DataContextFactory();
     }
 }

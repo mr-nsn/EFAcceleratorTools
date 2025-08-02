@@ -10,17 +10,28 @@ namespace EFAcceleratorTools.Examples.Infrastructure.Data.Context;
 
 public class DataContextFactory : IDbContextFactory<DataContext>
 {
-    private readonly IConfiguration _configuration;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IConfiguration? _configuration;
 
-    public DataContextFactory(IConfiguration configuration, IServiceProvider serviceProvider)
+    public DataContextFactory(IConfiguration? configuration = null)
     {
         _configuration = configuration;
-        _serviceProvider = serviceProvider;
     }
 
     public virtual DataContext CreateDbContext()
     {
+        if (_configuration is null)
+        {
+            var options = new DbContextOptionsBuilder<DataContext>()
+             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+             .Options;
+
+            var context = new DataContext(options);
+            context.Database.EnsureDeleted();
+            context.Database.EnsureCreated();
+
+            return context;
+        }
+
         var appConfig = _configuration.GetSection("ConsoleAppConfiguration");
         var config = appConfig.Get<ConsoleAppConfiguration>();
 
