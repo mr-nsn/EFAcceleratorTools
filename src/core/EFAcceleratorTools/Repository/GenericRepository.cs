@@ -1,4 +1,6 @@
-﻿using EFAcceleratorTools.Models;
+﻿using Apparatus.AOT.Reflection;
+using EFAcceleratorTools.Models;
+using EFAcceleratorTools.Pagination;
 using EFAcceleratorTools.Select;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -38,7 +40,16 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     #region Get and Find
 
     /// <inheritdoc/>
-    public virtual async Task<ICollection<TEntity>> DynamicSelectAsync(params string[] fields)
+    public async Task<PaginationResult<TEntity>> SearchWithPaginationAsync(QueryFilter<TEntity> queryFilter)
+    {
+        return await _dbSet.AsNoTracking()
+            .DynamicSelect(queryFilter.Fields)
+            .GetPagination(queryFilter)
+            .ToPaginationResultListAsync();
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task<ICollection<TEntity>> DynamicSelectAsync(params KeyOf<TEntity>[] fields)
     {
         return await Task.FromResult(_dbSet.AsNoTracking().DynamicSelect(fields).ToList());
     }
@@ -52,7 +63,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     /// <inheritdoc/>
     public virtual async Task<TEntity?> GetByIdAsync(long id)
     {
-        return await Task.FromResult(_dbSet.Find(new object[] { id }));
+        return await Task.FromResult(_dbSet.Find([id]));
     }
 
     /// <inheritdoc/>
@@ -243,6 +254,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     public void Dispose()
     {
         _context.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     #endregion

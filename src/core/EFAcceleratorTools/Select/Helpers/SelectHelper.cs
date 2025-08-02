@@ -74,7 +74,7 @@ public static class SelectHelper
                 .ToDictionary(g => g.Key, g => g.Select(s => s.Contains(".") ? s.Substring(g.Key.Length + 1) : s).ToList());
 
             // Threat when the nested property is a list or array
-            if (IsCollection(nestedType))
+            if (ComplexObjectsHelper.IsCollection(nestedType))
             {
                 var itemType = nestedType.IsGenericType
                     ? nestedType.GetGenericArguments()[0]
@@ -125,19 +125,19 @@ public static class SelectHelper
         }
         else // Base case (When a nested property does not have a punctuation)
         {
-            if (IsSimple(nestedType)) // Simple property (only create the binding)
+            if (ComplexObjectsHelper.IsSimple(nestedType)) // Simple property (only create the binding)
             {
                 var propertyExpr = Expression.Property(xParameter, keyProperty);
                 return Expression.Bind(keyProperty, propertyExpr);
             }
-            else if (IsComplex(nestedType)) // Complex property (create binding for all the properties selected)
+            else if (ComplexObjectsHelper.IsComplex(nestedType)) // Complex property (create binding for all the properties selected)
             {
                 var nestedBindings = CreateMemberBindingHelper(nestedType, nestedProperties, nestedParam);
 
                 var newNested = Expression.MemberInit(Expression.New(nestedType), nestedBindings);
                 return Expression.Bind(keyProperty, newNested);
             }
-            else if (IsCollection(nestedType)) // Lists or arrays (create a binding for the list)
+            else if (ComplexObjectsHelper.IsCollection(nestedType)) // Lists or arrays (create a binding for the list)
             {
                 var nestedBindings = CreateListBindingHelper(nestedType, nestedProperties, nestedParam);
                 return Expression.Bind(keyProperty, nestedBindings);
@@ -200,37 +200,7 @@ public static class SelectHelper
             .MakeGenericMethod(type!);
 
         return Expression.Call(toListMethod, selectCall);
-    }
-
-    // Verify if the type is simple
-    private static bool IsSimple(Type type)
-    {
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-        {
-            // Nullable type, check if the nested type is simple.
-            return IsSimple(type.GetGenericArguments()[0]);
-        }
-
-        return type.IsPrimitive
-          || type.IsEnum
-          || type.Equals(typeof(string))
-          || type.Equals(typeof(decimal))
-          || type.Equals(typeof(DateTime));
-    }
-
-    // Verify if the type is complex
-    private static bool IsComplex(Type type)
-    {
-        return !IsSimple(type) && !IsCollection(type);
-    }
-
-    // Verify if the type is enumerable
-    private static bool IsCollection(Type type)
-    {
-        var typeFullName = type.FullName ?? string.Empty;
-        var collectionsNameSpace = string.Format("{0}.{1}.{2}", nameof(System), nameof(System.Collections), nameof(System.Collections.Generic));
-        return typeFullName.StartsWith(collectionsNameSpace) && type != typeof(string);
-    }
+    }    
 
     // Initialize the available parameters
     private static void InitializeAvaiableParameters()

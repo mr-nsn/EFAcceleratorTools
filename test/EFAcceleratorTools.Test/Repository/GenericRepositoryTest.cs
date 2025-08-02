@@ -1,5 +1,6 @@
 using EFAcceleratorTools.Examples.Domain.Aggregates.Courses;
 using EFAcceleratorTools.Examples.Domain.Aggregates.Courses.Selects;
+using EFAcceleratorTools.Models.Builders;
 using EFAcceleratorTools.Test.Customization;
 using EFAcceleratorTools.Test.Fixtures.Courses;
 using Microsoft.EntityFrameworkCore;
@@ -156,7 +157,7 @@ public class GenericRepositoryTest
 
         // Assert
         Assert.Null(exception);
-        Assert.True(_courseFixture.Context.Entry(course).State == EntityState.Detached);
+        Assert.Equal(EntityState.Detached, _courseFixture.Context.Entry(course).State);
     }
 
     [Theory(DisplayName = "CourseRepository - DetachAll - Should detach all entities from the context")]
@@ -175,7 +176,7 @@ public class GenericRepositoryTest
 
         // Assert
         Assert.Null(exception);
-        Assert.All(courses, c => Assert.True(_courseFixture.Context.Entry(c).State == EntityState.Detached));
+        Assert.All(courses, c => Assert.Equal(EntityState.Detached, _courseFixture.Context.Entry(c).State));
     }
 
     [Fact(DisplayName = "CourseRepository - DisableChangeTracker - Should disable change tracking without exception")]
@@ -282,7 +283,6 @@ public class GenericRepositoryTest
     public async Task GetAllAsync_ShouldReturnsAllDataBaseRecords(List<Course> courses)
     {
         // Arrange
-        var fields = CourseSelects.BasicFields;
         await _courseFixture.RepositoryImpl.AddRangeAndCommitAsync(courses);
 
         // Act
@@ -353,6 +353,49 @@ public class GenericRepositoryTest
 
         // Assert
         Assert.Null(result);
+    }
+
+    [Theory(DisplayName = "CourseRepository - SearchWithPaginationAsync - Should return paginated and filtered results")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public async Task SearchWithPaginationAsync_ShouldReturnPaginatedAndFilteredResults(List<Course> courses)
+    {
+        // Arrange
+        await _courseFixture.RepositoryImpl.AddRangeAndCommitAsync(courses);
+
+        var page = 1;
+        var pageSize = 2;
+        var fields = CourseSelects.BasicFields;
+
+        var queryFilter = new QueryFilterBuilder<Course>()
+            .WithPage(page)
+            .WithPageSize(pageSize)
+            .WithFields(fields)
+            .Build();
+
+        // Act
+        var result = await _courseFixture.RepositoryImpl.SearchWithPaginationAsync(queryFilter);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(page, result.Page);
+        Assert.Equal(pageSize, result.PageSize);
+        Assert.Equal(courses.Count, result.TotalRecords);
+        Assert.NotNull(result.Result);
+        Assert.True(result.Result.Count <= pageSize);
+
+        // Verifica se os campos retornados são os esperados
+        Assert.All(result.Result, course =>
+        {
+            Assert.NotEqual(0, course.Id);
+            Assert.False(string.IsNullOrWhiteSpace(course.Title));
+            Assert.Null(course.InstructorId);
+            Assert.Null(course.Instructor);
+            Assert.Null(course.Modules);
+        });
     }
 
     [Theory(DisplayName = "CourseRepository - UpdateAndCommitAsync - Should update and persist a course")]

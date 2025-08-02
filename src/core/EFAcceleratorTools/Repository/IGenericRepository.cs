@@ -1,4 +1,5 @@
-﻿using EFAcceleratorTools.Models;
+﻿using Apparatus.AOT.Reflection;
+using EFAcceleratorTools.Models;
 using System.Linq.Expressions;
 
 namespace EFAcceleratorTools.Repository;
@@ -15,11 +16,24 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     #region Get and Find
 
     /// <summary>
+    /// Asynchronously searches for entities using the specified <see cref="QueryFilter{TEntity}"/>, 
+    /// applying pagination and field selection, and returns a paginated result.
+    /// </summary>
+    /// <param name="queryFilter">
+    /// The filter containing pagination parameters and the fields to be selected in the query.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains a <see cref="PaginationResult{TEntity}"/>
+    /// with pagination metadata and the result set.
+    /// </returns>
+    Task<PaginationResult<TEntity>> SearchWithPaginationAsync(QueryFilter<TEntity> queryFilter);
+
+    /// <summary>
     /// Asynchronously selects specific fields from the entity set.
     /// </summary>
     /// <param name="fields">The names of the fields to select.</param>
     /// <returns>A collection of entities with the specified fields populated.</returns>
-    Task<ICollection<TEntity>> DynamicSelectAsync(params string[] fields);
+    Task<ICollection<TEntity>> DynamicSelectAsync(params KeyOf<TEntity>[] fields);
 
     /// <summary>
     /// Asynchronously retrieves all entities.

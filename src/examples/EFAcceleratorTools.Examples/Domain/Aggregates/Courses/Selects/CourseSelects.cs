@@ -1,18 +1,19 @@
-﻿using EFAcceleratorTools.Examples.Domain.Aggregates.Instructors;
+﻿using Apparatus.AOT.Reflection;
+using EFAcceleratorTools.Examples.Domain.Aggregates.Instructors;
 
 namespace EFAcceleratorTools.Examples.Domain.Aggregates.Courses.Selects
 {
     public static class CourseSelects
     {
-        public static string[] BasicFields => new[]
-        {
+        public static KeyOf<Course>[] BasicFields =>
+        [
             string.Format("{0}", nameof(Course.Id)),
             string.Format("{0}", nameof(Course.Title)),
             string.Format("{0}", nameof(Course.CreatedAt)),
-        };
+        ];
 
-        public static string[] AllRelationships => new[]
-        {
+        public static KeyOf<Course>[] AllRelationships =>
+        [
             string.Format("{0}", nameof(Course.Id)),
             string.Format("{0}", nameof(Course.InstructorId)),
             string.Format("{0}", nameof(Course.Title)),
@@ -34,6 +35,6 @@ namespace EFAcceleratorTools.Examples.Domain.Aggregates.Courses.Selects
             string.Format("{0}.{1}.{2}", nameof(Course.Modules), nameof(Module.Lessons), nameof(Lesson.Title)),
             string.Format("{0}.{1}.{2}", nameof(Course.Modules), nameof(Module.Lessons), nameof(Lesson.Duration)),
             string.Format("{0}.{1}.{2}", nameof(Course.Modules), nameof(Module.Lessons), nameof(Lesson.CreatedAt))
-        };
+        ];
     }
 }
