@@ -1,10 +1,7 @@
-﻿using EFAcceleratorTools.Examples.Domain.Aggregates.Courses;
-using EFAcceleratorTools.Examples.Infrastructure.Data;
+﻿using EFAcceleratorTools.Examples.Infrastructure.Data;
 using EFAcceleratorTools.Examples.Infrastructure.Data.Context;
 using EFAcceleratorTools.Examples.Infrastructure.Data.Repositories.Aggregates.Courses;
 using EFAcceleratorTools.Examples.Infrastructure.IoC;
-using EFAcceleratorTools.Models.Builders;
-using EFAcceleratorTools.Select.Defaults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,13 +28,7 @@ public class Program
 
     public async Task RunAsync()
     {
-        var queryFilter = new QueryFilterBuilder<Course>()
-            .WithPage(1)
-            .WithPageSize(2)
-            .WithFields(SelectsDefaults<Course>.BasicFields)
-            .Build();
-
-        var result = await _courseRepository.SearchWithPaginationAsync(queryFilter);
+        var result = await _courseRepository.MassiveQueryAsync();
 
         var jsonSettings = new JsonSerializerSettings
         {

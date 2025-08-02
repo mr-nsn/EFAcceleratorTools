@@ -1,6 +1,8 @@
 ﻿using EFAcceleratorTools.Examples.Configs;
 using EFAcceleratorTools.Examples.Infrastructure.Data.Context;
 using EFAcceleratorTools.Examples.Infrastructure.Data.Repositories.Aggregates.Courses;
+using EFAcceleratorTools.Examples.Logging;
+using EFAcceleratorTools.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,11 +35,19 @@ public static class BootStrapper
             });
         }, contextLifetime: ServiceLifetime.Scoped, optionsLifetime: ServiceLifetime.Scoped);
 
+        services.AddDbContextFactory<DataContext, DataContextFactory>(lifetime: ServiceLifetime.Scoped);
+
         #endregion
 
         #region Repositories
 
         services.AddScoped<ICourseRepository, CourseRepository>();
+
+        #endregion
+
+        #region Logging
+
+        services.AddScoped<IApplicationLogger, ApplicationLogger>();
 
         #endregion
     }

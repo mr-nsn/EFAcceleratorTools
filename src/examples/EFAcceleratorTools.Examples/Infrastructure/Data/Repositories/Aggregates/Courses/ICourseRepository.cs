@@ -3,4 +3,7 @@ using EFAcceleratorTools.Repository;
 
 namespace EFAcceleratorTools.Examples.Infrastructure.Data.Repositories.Aggregates.Courses;
 
-public interface ICourseRepository : IGenericRepository<Course> { }
+public interface ICourseRepository : IGenericRepository<Course>
+{
+    Task<ICollection<Course>> MassiveQueryAsync();
+}

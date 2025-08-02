@@ -23,6 +23,11 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     protected DbContext _context;
 
     /// <summary>
+    /// A factory for the Entity Framework Core database context.
+    /// </summary>
+    protected IDbContextFactory<DbContext> _dbFactory;
+
+    /// <summary>
     /// The <see cref="DbSet{TEntity}"/> representing the entity set.
     /// </summary>
     protected DbSet<TEntity> _dbSet;
@@ -31,10 +36,11 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     /// Initializes a new instance of the <see cref="GenericRepository{TEntity}"/> class.
     /// </summary>
     /// <param name="context">The database context to be used by the repository.</param>
-    public GenericRepository(DbContext context)
+    public GenericRepository(DbContext context, IDbContextFactory<DbContext> dbFactory)
     {
         _context = context;
         _dbSet = _context.Set<TEntity>();
+        _dbFactory = dbFactory;
     }
 
     #region Get and Find
