@@ -20,6 +20,6 @@ public static class SelectExtensions
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="fields"/> is null or empty.</exception>
     public static IQueryable<T> DynamicSelect<T>(this IQueryable<T> query, params KeyOf<T>[] fields) where T : class
     {
-        return query.Select(SelectHelper.DynamicSelectGenerator<T>([.. fields.Select(f => f.Value)]));
+        return query.Select(SelectHelper.DynamicSelectGenerator<T>(fields.Select(f => f.Value).ToArray()));
     }
 }

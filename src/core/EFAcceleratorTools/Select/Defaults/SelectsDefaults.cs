@@ -6,8 +6,7 @@ namespace EFAcceleratorTools.Select.Defaults;
 public static class SelectsDefaults<T>
 {
     public static KeyOf<T>[] BasicFields =>
-    [
-        .. Activator.CreateInstance<T>()
+        Activator.CreateInstance<T>()
             .GetProperties()
             .Values
             .Where(v =>  ComplexObjectsHelper.IsSimple(v.PropertyType))
@@ -16,5 +15,5 @@ public static class SelectsDefaults<T>
                 KeyOf<T>.TryParse(v.Name, out var key);
                 return key;
             })
-    ];
+            .ToArray();
 }

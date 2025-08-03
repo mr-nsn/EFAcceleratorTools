@@ -70,7 +70,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     /// <inheritdoc/>
     public virtual async Task<TEntity?> GetByIdAsync(long id)
     {
-        return await Task.FromResult(_dbSet.Find([id]));
+        return await Task.FromResult(_dbSet.Find(id));
     }
 
     /// <inheritdoc/>

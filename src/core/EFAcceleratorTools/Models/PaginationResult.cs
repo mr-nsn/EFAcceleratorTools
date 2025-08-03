@@ -93,6 +93,6 @@ public class PaginationResult<T>
     /// <param name="result">The collection of items for the current page, or <c>null</c> to use the query result.</param>
     public void SetResult(ICollection<T>? result = null)
     {
-        Result = result ?? [.. Query];
+        Result = result ?? Query.ToList();
     }
 }
