@@ -21,9 +21,9 @@ public static class DbInitializer
         context.SaveChanges();
     }
 
-    public static List<Course> GenerateCourses(int count = 10)
+    public static List<Course> GenerateCourses(int count = 10, int randomSeed = 8675309)
     {
-        Randomizer.Seed = new Random(8675309);
+        Randomizer.Seed = new Random(randomSeed);
 
         var profileFaker = new Faker<Profile>("pt_BR")
             .RuleFor(p => p.Id, f => 0)

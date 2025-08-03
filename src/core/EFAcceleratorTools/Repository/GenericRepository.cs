@@ -50,6 +50,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     {
         return await _dbSet.AsNoTracking()
             .DynamicSelect(queryFilter.Fields)
+            .OrderBy(x => x.Id)
             .GetPagination(queryFilter)
             .ToPaginationResultListAsync();
     }
@@ -106,6 +107,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
             _context.SaveChanges();
         });
 
+        DetachAll();
         return entity;
     }
 
@@ -127,6 +129,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
             _context.SaveChanges();
         });
 
+        DetachAll();
         return entities;
     }
 
@@ -152,6 +155,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
             _context.SaveChanges();
         });
 
+        DetachAll();
         return entity;
     }    
 
@@ -173,6 +177,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
             _context.SaveChanges();
         });
 
+        DetachAll();
         return entities;
     }
 
@@ -193,6 +198,23 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
         var entity = await GetByIdAsync(id) ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
         _dbSet.Remove(entity);
         _context.SaveChanges();
+        DetachAll();
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task RemoveRangeAsync(params long[] ids)
+    {
+        var entities = await FindAllAsync(x => ids.Contains(x.Id)) ?? throw new KeyNotFoundException($"Some entities were not found, ids: {string.Join(", ", ids)}.");
+        _dbSet.RemoveRange(entities);
+    }
+
+    /// <inheritdoc/>
+    public virtual async Task RemoveRangeAndCommitAsync(params long[] ids)
+    {
+        var entities = await FindAllAsync(x => ids.Contains(x.Id)) ?? throw new KeyNotFoundException($"Some entities were not found, ids: {string.Join(", ", ids)}.");
+        _dbSet.RemoveRange(entities);
+        _context.SaveChanges();
+        DetachAll();
     }
 
     #endregion
@@ -249,7 +271,9 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     /// <inheritdoc/>
     public virtual async Task<int> CommitAsync()
     {
-        return await Task.FromResult(_context.SaveChanges());
+        var changesCounter = _context.SaveChanges();
+        DetachAll();
+        return await Task.FromResult(changesCounter);
     }
 
     #endregion

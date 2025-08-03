@@ -355,6 +355,47 @@ public class GenericRepositoryTest
         Assert.Null(result);
     }
 
+    [Theory(DisplayName = "CourseRepository - RemoveRangeAndCommitAsync - Should remove all courses and persist the removal of the courses")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public async Task RemoveRangeAndCommitAsync_ShouldRemoveAllCoursesAndPersist(List<Course> courses)
+    {
+        // Arrange
+        await _courseFixture.RepositoryImpl.AddRangeAsync(courses);
+        await _courseFixture.RepositoryImpl.CommitAsync();
+
+        // Act
+        await _courseFixture.RepositoryImpl.RemoveRangeAndCommitAsync(courses.Select(c => c.Id).ToArray());
+
+        // Assert
+        var results = await _courseFixture.RepositoryImpl.FindAllAsync(c => courses.Select(c => c.Id).Contains(c.Id));
+        Assert.Empty(results);
+    }
+
+    [Theory(DisplayName = "CourseRepository - RemoveRangeAsync - Should remove all courses after commited")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public async Task RemoveRangeAsync_ShouldRemoveAllCoursesAndPersist(List<Course> courses)
+    {
+        // Arrange
+        await _courseFixture.RepositoryImpl.AddRangeAsync(courses);
+        await _courseFixture.RepositoryImpl.CommitAsync();
+
+        // Act
+        await _courseFixture.RepositoryImpl.RemoveRangeAsync(courses.Select(c => c.Id).ToArray());
+        await _courseFixture.RepositoryImpl.CommitAsync();
+
+        // Assert
+        var results = await _courseFixture.RepositoryImpl.FindAllAsync(c => courses.Select(c => c.Id).Contains(c.Id));
+        Assert.Empty(results);
+    }   
+
     [Theory(DisplayName = "CourseRepository - SearchWithPaginationAsync - Should return paginated and filtered results")]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]

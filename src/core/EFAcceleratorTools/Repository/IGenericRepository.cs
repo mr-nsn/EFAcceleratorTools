@@ -138,6 +138,18 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// <param name="id">The unique identifier of the entity to remove.</param>
     Task RemoveAndCommitAsync(long id);
 
+    /// <summary>
+    /// Asynchronously removes a range of entities by its unique identifier.
+    /// </summary>
+    /// <param name="ids">The collection of unique identifiers of the entities to remove.</param>
+    Task RemoveRangeAsync(params long[] ids);
+
+    /// <summary>
+    /// Asynchronously removes a range of entities by its unique identifier and commits the changes.
+    /// </summary>
+    /// <param name="ids">The collection of unique identifiers of the entities to remove.</param>
+    Task RemoveRangeAndCommitAsync(params long[] ids);
+
     #endregion
 
     #region Any

@@ -6,4 +6,5 @@ namespace EFAcceleratorTools.Examples.Infrastructure.Data.Repositories.Aggregate
 public interface ICourseRepository : IGenericRepository<Course>
 {
     Task<ICollection<Course>> MassiveQueryAsync();
+    Task RemoveRangeCascadeAndCommitAsync(params long[] ids);
 }
