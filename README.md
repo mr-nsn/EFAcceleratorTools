@@ -3,7 +3,7 @@
 🚀 High-performance utilities to boost your Entity Framework Core experience.  
 Built for developers who need more power, flexibility, and speed when querying data.
 
-EFAcceleratorTools is a .NET library designed to enhance productivity and performance when working with Entity Framework Core. It provides dynamic projection, advanced pagination, parallel query execution, simplified entity mapping, and a robust generic repository pattern—all with a lightweight and extensible design.
+EFAcceleratorTools is a .NET library designed to enhance productivity and performance when working with Entity Framework Core. It provides dynamic projection, advanced pagination, parallel query execution, simplified entity mapping, and a robust generic repository pattern — all with a lightweight and extensible design.
 
 📄 License: [MIT](./LICENSE)
 
@@ -33,10 +33,44 @@ dotnet add package EFAcceleratorTools --version 1.0.1
 
 ### Dynamic Select
 
-Select only specific properties dynamically from your entities:
+Tired of `Include` and `ThenInclude` everything? With `DynamicSelect`, you can easily project only the properties you need, without the overhead of loading entire entities and without having to make the `Select` manually each time.
+You can simply add the fields you want for each relationship and the library will handle the rest. It supports simple properties and nested complex relationships, including Collections.
+
+Bonus Tip: Enable `NullValueHandling = NullValueHandling.Ignore` in `Newtonsoft.Json` serialization or similars to have a GraphQL like solution for your REST APIs.
 ```csharp
+// You can select simple properties of the entity
 var courses = await _context.Courses
     .DynamicSelect(nameof(Course.Id), nameof(Course.Title))
+    .ToListAsync();
+
+// And you can select complex properties, including collections
+KeyOf<Course>[] AllRelationships =
+[
+    string.Format("{0}", nameof(Course.Id)),
+    string.Format("{0}", nameof(Course.InstructorId)),
+    string.Format("{0}", nameof(Course.Title)),
+    string.Format("{0}", nameof(Course.CreatedAt)),
+    string.Format("{0}.{1}", nameof(Course.Instructor), nameof(Course.Instructor.Id)),
+    string.Format("{0}.{1}", nameof(Course.Instructor), nameof(Course.Instructor.FullName)),
+    string.Format("{0}.{1}", nameof(Course.Instructor), nameof(Course.Instructor.CreatedAt)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Instructor), nameof(Instructor.Profile), nameof(Profile.Id)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Instructor), nameof(Instructor.Profile), nameof(Profile.InstructorId)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Instructor), nameof(Instructor.Profile), nameof(Profile.Bio)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Instructor), nameof(Instructor.Profile), nameof(Profile.LinkedInUrl)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Instructor), nameof(Instructor.Profile), nameof(Profile.CreatedAt)),
+    string.Format("{0}.{1}", nameof(Course.Modules), nameof(Module.Id)),
+    string.Format("{0}.{1}", nameof(Course.Modules), nameof(Module.CourseId)),
+    string.Format("{0}.{1}", nameof(Course.Modules), nameof(Module.Name)),
+    string.Format("{0}.{1}", nameof(Course.Modules), nameof(Module.CreatedAt)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Modules), nameof(Module.Lessons), nameof(Lesson.Id)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Modules), nameof(Module.Lessons), nameof(Lesson.ModuleId)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Modules), nameof(Module.Lessons), nameof(Lesson.Title)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Modules), nameof(Module.Lessons), nameof(Lesson.Duration)),
+    string.Format("{0}.{1}.{2}", nameof(Course.Modules), nameof(Module.Lessons), nameof(Lesson.CreatedAt))
+];
+
+var courses = await _context.Courses
+    .DynamicSelect(AllRelationships)
     .ToListAsync();
 ```
 
