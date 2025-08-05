@@ -6,7 +6,7 @@ namespace EFAcceleratorTools.Repository;
 
 /// <summary>
 /// Defines a generic repository interface for performing CRUD operations and queries on entities.
-/// Provides asynchronous methods for data access, change tracking, and transaction management.
+/// Provides synchronous and asynchronous methods for data access, change tracking, and transaction management.
 /// </summary>
 /// <typeparam name="TEntity">
 /// The type of the entity managed by the repository. Must inherit from <see cref="Entity"/>.
@@ -14,6 +14,8 @@ namespace EFAcceleratorTools.Repository;
 public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entity
 {
     #region Get and Find
+
+    #region Async
 
     /// <summary>
     /// Asynchronously searches for entities using the specified <see cref="QueryFilter{TEntity}"/>, 
@@ -64,7 +66,11 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
 
     #endregion
 
+    #endregion
+
     #region Add
+
+    #region Async
 
     /// <summary>
     /// Asynchronously adds a new entity to the repository.
@@ -94,7 +100,11 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
 
     #endregion
 
+    #endregion
+
     #region Update
+
+    #region Async
 
     /// <summary>
     /// Asynchronously updates an existing entity.
@@ -124,7 +134,11 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
 
     #endregion
 
+    #endregion
+
     #region Remove
+
+    #region Async
 
     /// <summary>
     /// Asynchronously removes an entity by its unique identifier.
@@ -152,7 +166,11 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
 
     #endregion
 
+    #endregion
+
     #region Any
+
+    #region Async
 
     /// <summary>
     /// Asynchronously determines whether any entities match the specified predicate.
@@ -160,6 +178,8 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// <param name="predicate">The filter expression.</param>
     /// <returns><c>true</c> if any entities match; otherwise, <c>false</c>.</returns>
     Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate);
+
+    #endregion
 
     #endregion
 
@@ -194,11 +214,15 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
 
     #region Commit
 
+    #region Async
+
     /// <summary>
     /// Asynchronously commits all pending changes to the data store.
     /// </summary>
     /// <returns>The number of state entries written to the database.</returns>
     Task<int> CommitAsync();
+
+    #endregion
 
     #endregion
 }

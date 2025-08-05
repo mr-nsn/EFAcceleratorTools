@@ -28,7 +28,7 @@ public class CourseRepository : GenericRepository<Course>, ICourseRepository
     {
         return await ParallelQueryExecutor.DoItParallelAsync
         (
-            () => _dataContextFactory.CreateDbContext().Courses.OrderBy(x => x.Id).AsQueryable(),
+            () => _dataContextFactory.CreateDbContext().Courses.AsNoTracking().OrderBy(x => x.Id).AsQueryable(),
             new ParallelParams
             {
                 TotalRegisters = _dataContext.Courses.Count(),
@@ -43,6 +43,7 @@ public class CourseRepository : GenericRepository<Course>, ICourseRepository
     public async Task RemoveRangeCascadeAndCommitAsync(params long[] ids)
     {
         var courses = await _dataContext.Courses
+            .AsTracking()
             .Where(c => ids.Contains(c.Id))
             .DynamicSelect(CourseSelects.AllRelationships)
             .ToArrayAsync();
