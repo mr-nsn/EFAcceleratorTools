@@ -10,7 +10,8 @@ namespace EFAcceleratorTools.Repository;
 
 /// <summary>
 /// Provides a generic, base implementation of the <see cref="IGenericRepository{TEntity}"/> interface
-/// for performing CRUD operations, queries, and change tracking on entities using Entity Framework Core.
+/// for performing CRUD operations, queries, pagination, and change tracking on entities using Entity Framework Core.
+/// Supports both synchronous and asynchronous operations, as well as configurable tracking behavior.
 /// </summary>
 /// <typeparam name="TEntity">
 /// The type of the entity managed by the repository. Must inherit from <see cref="Entity"/>.
@@ -33,9 +34,15 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     protected DbSet<TEntity> _dbSet;
 
     /// <summary>
+    /// Indicates whether change tracking is enabled for queries and operations.
+    /// </summary>
+    protected bool _trackingEnabled = true;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="GenericRepository{TEntity}"/> class.
     /// </summary>
     /// <param name="context">The database context to be used by the repository.</param>
+    /// <param name="dbFactory">The factory for creating new database context instances.</param>
     public GenericRepository(DbContext context, IDbContextFactory<DbContext> dbFactory)
     {
         _context = context;
@@ -45,97 +52,108 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
 
     #region Get and Find
 
+    #region async
+
     /// <inheritdoc/>
     public async Task<PaginationResult<TEntity>> SearchWithPaginationAsync(QueryFilter<TEntity> queryFilter)
     {
-        return await _dbSet.AsNoTracking()
-            .DynamicSelect(queryFilter.Fields)
-            .OrderBy(x => x.Id)
-            .GetPagination(queryFilter)
-            .ToPaginationResultListAsync();
+        return _trackingEnabled
+            ? await _dbSet
+                .DynamicSelect(queryFilter.Fields)
+                .OrderBy(x => x.Id)
+                .GetPagination(queryFilter)
+                .ToPaginationResultListAsync()
+            : await _dbSet
+                .AsNoTracking()
+                .DynamicSelect(queryFilter.Fields)
+                .OrderBy(x => x.Id)
+                .GetPagination(queryFilter)
+                .ToPaginationResultListAsync();
     }
 
     /// <inheritdoc/>
     public virtual async Task<ICollection<TEntity>> DynamicSelectAsync(params KeyOf<TEntity>[] fields)
     {
-        return await Task.FromResult(_dbSet.AsNoTracking().DynamicSelect(fields).ToList());
+        return _trackingEnabled
+            ? await _dbSet.DynamicSelect(fields).ToListAsync()
+            : await _dbSet.AsNoTracking().DynamicSelect(fields).ToListAsync();
     }
 
     /// <inheritdoc/>
     public virtual async Task<ICollection<TEntity>> GetAllAsync()
     {
-        return await Task.FromResult(_dbSet.AsNoTracking().ToList());
+        return _trackingEnabled
+            ? await _dbSet.ToListAsync()
+            : await _dbSet.AsNoTracking().ToListAsync();
     }
 
     /// <inheritdoc/>
     public virtual async Task<TEntity?> GetByIdAsync(long id)
     {
-        return await Task.FromResult(_dbSet.Find(id));
+        return _trackingEnabled
+            ? await _dbSet.FirstOrDefaultAsync(x => x.Id == id)
+            : await _dbSet.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
     }
 
     /// <inheritdoc/>
     public virtual async Task<ICollection<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        return await Task.FromResult(_dbSet.AsNoTracking().Where(predicate).ToList());
+        return _trackingEnabled
+            ? await _dbSet.Where(predicate).ToListAsync()
+            : await _dbSet.AsNoTracking().Where(predicate).ToListAsync();
     }
 
     /// <inheritdoc/>
     public virtual async Task<TEntity?> FindFirstAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        return await Task.FromResult(_dbSet.AsNoTracking().FirstOrDefault(predicate));
+        return _trackingEnabled
+            ? await _dbSet.FirstOrDefaultAsync(predicate)
+            : await _dbSet.AsNoTracking().FirstOrDefaultAsync(predicate);
     }
+
+    #endregion
 
     #endregion
 
     #region Add
 
+    #region async
+
     /// <inheritdoc/>
     public virtual async Task AddAsync(TEntity entity)
     {
-        await Task.Run(() =>
-        {
-            _dbSet.Add(entity);
-        });
+        await _dbSet.AddAsync(entity);
     }
 
     /// <inheritdoc/>
     public virtual async Task<TEntity> AddAndCommitAsync(TEntity entity)
     {
-        await Task.Run(() =>
-        {
-            _dbSet.Add(entity);
-            _context.SaveChanges();
-        });
-
-        DetachAll();
+        await _dbSet.AddAsync(entity);
+        await CommitAsync();
         return entity;
     }
 
     /// <inheritdoc/>
     public virtual async Task AddRangeAsync(ICollection<TEntity> entities)
     {
-        await Task.Run(() =>
-        {
-            _dbSet.AddRange(entities);
-        });
+        await _dbSet.AddRangeAsync(entities);
     }
 
     /// <inheritdoc/>
     public virtual async Task<ICollection<TEntity>> AddRangeAndCommitAsync(ICollection<TEntity> entities)
     {
-        await Task.Run(() =>
-        {
-            _dbSet.AddRange(entities);
-            _context.SaveChanges();
-        });
-
-        DetachAll();
+        await _dbSet.AddRangeAsync(entities);
+        await CommitAsync();
         return entities;
     }
 
     #endregion
 
+    #endregion
+
     #region Update
+
+    #region async
 
     /// <inheritdoc/>
     public virtual async Task UpdateAsync(TEntity entity)
@@ -149,15 +167,10 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     /// <inheritdoc/>
     public virtual async Task<TEntity> UpdateAndCommitAsync(TEntity entity)
     {
-        await Task.Run(() =>
-        {
-            _dbSet.Update(entity);
-            _context.SaveChanges();
-        });
-
-        DetachAll();
+        _dbSet.Update(entity);
+        await CommitAsync();
         return entity;
-    }    
+    }
 
     /// <inheritdoc/>
     public virtual async Task UpdateRangeAsync(ICollection<TEntity> entities)
@@ -174,16 +187,19 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
         await Task.Run(() =>
         {
             _dbSet.UpdateRange(entities);
-            _context.SaveChanges();
         });
 
-        DetachAll();
+        await CommitAsync();
         return entities;
     }
 
     #endregion
 
+    #endregion
+
     #region Remove
+
+    #region async
 
     /// <inheritdoc/>
     public virtual async Task RemoveAsync(long id)
@@ -197,8 +213,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     {
         var entity = await GetByIdAsync(id) ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
         _dbSet.Remove(entity);
-        _context.SaveChanges();
-        DetachAll();
+        await CommitAsync();
     }
 
     /// <inheritdoc/>
@@ -213,19 +228,24 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     {
         var entities = await FindAllAsync(x => ids.Contains(x.Id)) ?? throw new KeyNotFoundException($"Some entities were not found, ids: {string.Join(", ", ids)}.");
         _dbSet.RemoveRange(entities);
-        _context.SaveChanges();
-        DetachAll();
+        await CommitAsync();
     }
+
+    #endregion
 
     #endregion
 
     #region Any
 
+    #region async
+
     /// <inheritdoc/>
     public virtual async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        return await Task.FromResult(_dbSet.AsNoTracking().Any(predicate));
+        return await _dbSet.AnyAsync(predicate);
     }
+
+    #endregion
 
     #endregion
 
@@ -256,25 +276,31 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     public virtual void DisableChangeTracker()
     {
         _context.ChangeTracker.AutoDetectChangesEnabled = false;
+        _trackingEnabled = false;
     }
 
     /// <inheritdoc/>
     public virtual void EnableChangeTracker()
     {
         _context.ChangeTracker.AutoDetectChangesEnabled = true;
+        _trackingEnabled = true;
     }
 
     #endregion
 
     #region Commit
 
+    #region async
+
     /// <inheritdoc/>
     public virtual async Task<int> CommitAsync()
     {
-        var changesCounter = _context.SaveChanges();
-        DetachAll();
-        return await Task.FromResult(changesCounter);
+        var changesCounter = await _context.SaveChangesAsync();
+        if (!_trackingEnabled) DetachAll();
+        return changesCounter;
     }
+
+    #endregion
 
     #endregion
 

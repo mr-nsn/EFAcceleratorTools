@@ -44,7 +44,7 @@ public static class PaginationExtensions
     /// </returns>
     public static async Task<PaginationResult<T>> ToPaginationResultListAsync<T>(this PaginationResult<T> pagination) where T : class
     {
-        pagination.SetResult(await Task.FromResult(pagination.Query.AsNoTracking().ToList()));
+        pagination.SetResult(await pagination.Query.ToListAsync());
         return pagination;
     }
 }
