@@ -47,4 +47,10 @@ public static class PaginationExtensions
         pagination.SetResult(await pagination.Query.ToListAsync());
         return pagination;
     }
+
+    public static PaginationResult<T> ToPaginationResultList<T>(this PaginationResult<T> pagination) where T : class
+    {
+        pagination.SetResult(pagination.Query.ToList());
+        return pagination;
+    }
 }
