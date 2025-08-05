@@ -113,6 +113,67 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
 
     #endregion
 
+    #region sync
+
+    /// <inheritdoc/>
+    public PaginationResult<TEntity> SearchWithPagination(QueryFilter<TEntity> queryFilter)
+    {
+        return _trackingEnabled
+            ? _dbSet
+                .DynamicSelect(queryFilter.Fields)
+                .OrderBy(x => x.Id)
+                .GetPagination(queryFilter)
+                .ToPaginationResultList()
+            : _dbSet
+                .AsNoTracking()
+                .DynamicSelect(queryFilter.Fields)
+                .OrderBy(x => x.Id)
+                .GetPagination(queryFilter)
+                .ToPaginationResultList();
+    }
+
+    /// <inheritdoc/>
+    public virtual ICollection<TEntity> DynamicSelect(params KeyOf<TEntity>[] fields)
+    {
+        return _trackingEnabled
+            ? _dbSet.DynamicSelect(fields).ToList()
+            : _dbSet.AsNoTracking().DynamicSelect(fields).ToList();
+    }
+
+    /// <inheritdoc/>
+    public virtual ICollection<TEntity> GetAll()
+    {
+        return _trackingEnabled
+            ? _dbSet.ToList()
+            : _dbSet.AsNoTracking().ToList();
+    }
+
+    /// <inheritdoc/>
+    public virtual TEntity? GetById(long id)
+    {
+        return _trackingEnabled
+            ? _dbSet.FirstOrDefault(x => x.Id == id)
+            : _dbSet.AsNoTracking().FirstOrDefault(x => x.Id == id);
+    }
+
+    /// <inheritdoc/>
+    public virtual ICollection<TEntity> FindAll(Expression<Func<TEntity, bool>> predicate)
+    {
+        return _trackingEnabled
+            ? _dbSet.Where(predicate).ToList()
+            : _dbSet.AsNoTracking().Where(predicate).ToList();
+    }
+
+    /// <inheritdoc/>
+    public virtual TEntity? FindFirst(Expression<Func<TEntity, bool>> predicate)
+    {
+        return _trackingEnabled
+            ? _dbSet.FirstOrDefault(predicate)
+            : _dbSet.AsNoTracking().FirstOrDefault(predicate);
+    }
+
+    #endregion
+
     #endregion
 
     #region Add
@@ -144,6 +205,38 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     {
         await _dbSet.AddRangeAsync(entities);
         await CommitAsync();
+        return entities;
+    }
+
+    #endregion
+
+    #region sync
+
+    /// <inheritdoc/>
+    public virtual void Add(TEntity entity)
+    {
+        _dbSet.Add(entity);
+    }
+
+    /// <inheritdoc/>
+    public virtual TEntity AddAndCommit(TEntity entity)
+    {
+        _dbSet.Add(entity);
+        Commit();
+        return entity;
+    }
+
+    /// <inheritdoc/>
+    public virtual void AddRange(ICollection<TEntity> entities)
+    {
+        _dbSet.AddRange(entities);
+    }
+
+    /// <inheritdoc/>
+    public virtual ICollection<TEntity> AddRangeAndCommit(ICollection<TEntity> entities)
+    {
+        _dbSet.AddRange(entities);
+        Commit();
         return entities;
     }
 
@@ -195,6 +288,38 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
 
     #endregion
 
+    #region sync
+
+    /// <inheritdoc/>
+    public virtual void Update(TEntity entity)
+    {
+        _dbSet.Update(entity);
+    }
+
+    /// <inheritdoc/>
+    public virtual TEntity UpdateAndCommit(TEntity entity)
+    {
+        _dbSet.Update(entity);
+        Commit();
+        return entity;
+    }
+
+    /// <inheritdoc/>
+    public virtual void UpdateRange(ICollection<TEntity> entities)
+    {
+        _dbSet.UpdateRange(entities);
+    }
+
+    /// <inheritdoc/>
+    public virtual ICollection<TEntity> UpdateRangeAndCommit(ICollection<TEntity> entities)
+    {
+        _dbSet.UpdateRange(entities);
+        Commit();
+        return entities;
+    }
+
+    #endregion
+
     #endregion
 
     #region Remove
@@ -233,6 +358,40 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
 
     #endregion
 
+    #region sync
+
+    /// <inheritdoc/>
+    public virtual void Remove(long id)
+    {
+        var entity = GetById(id) ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
+        _dbSet.Remove(entity);
+    }
+
+    /// <inheritdoc/>
+    public virtual void RemoveAndCommit(long id)
+    {
+        var entity = GetById(id) ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
+        _dbSet.Remove(entity);
+        Commit();
+    }
+
+    /// <inheritdoc/>
+    public virtual void RemoveRange(params long[] ids)
+    {
+        var entities = FindAll(x => ids.Contains(x.Id)) ?? throw new KeyNotFoundException($"Some entities were not found, ids: {string.Join(", ", ids)}.");
+        _dbSet.RemoveRange(entities);
+    }
+
+    /// <inheritdoc/>
+    public virtual void RemoveRangeAndCommit(params long[] ids)
+    {
+        var entities = FindAll(x => ids.Contains(x.Id)) ?? throw new KeyNotFoundException($"Some entities were not found, ids: {string.Join(", ", ids)}.");
+        _dbSet.RemoveRange(entities);
+        Commit();
+    }
+
+    #endregion
+
     #endregion
 
     #region Any
@@ -243,6 +402,16 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     public virtual async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate)
     {
         return await _dbSet.AnyAsync(predicate);
+    }
+
+    #endregion
+
+    #region sync
+
+    /// <inheritdoc/>
+    public virtual bool Any(Expression<Func<TEntity, bool>> predicate)
+    {
+        return _dbSet.Any(predicate);
     }
 
     #endregion
@@ -296,6 +465,18 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     public virtual async Task<int> CommitAsync()
     {
         var changesCounter = await _context.SaveChangesAsync();
+        if (!_trackingEnabled) DetachAll();
+        return changesCounter;
+    }
+
+    #endregion
+
+    #region sync
+
+    /// <inheritdoc/>
+    public virtual int Commit()
+    {
+        var changesCounter = _context.SaveChanges();
         if (!_trackingEnabled) DetachAll();
         return changesCounter;
     }

@@ -66,6 +66,56 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
 
     #endregion
 
+    #region Sync
+
+    /// <summary>
+    /// Searches for entities using the specified <see cref="QueryFilter{TEntity}"/>, 
+    /// applying pagination and field selection, and returns a paginated result.
+    /// </summary>
+    /// <param name="queryFilter">
+    /// The filter containing pagination parameters and the fields to be selected in the query.
+    /// </param>
+    /// <returns>
+    /// A <see cref="PaginationResult{TEntity}"/> with pagination metadata and the result set.
+    /// </returns>
+    PaginationResult<TEntity> SearchWithPagination(QueryFilter<TEntity> queryFilter);
+
+    /// <summary>
+    /// Selects specific fields from the entity set.
+    /// </summary>
+    /// <param name="fields">The names of the fields to select.</param>
+    /// <returns>A collection of entities with the specified fields populated.</returns>
+    ICollection<TEntity> DynamicSelect(params KeyOf<TEntity>[] fields);
+
+    /// <summary>
+    /// Retrieves all entities.
+    /// </summary>
+    /// <returns>A collection of all entities.</returns>
+    ICollection<TEntity> GetAll();
+
+    /// <summary>
+    /// Retrieves an entity by its unique identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier of the entity.</param>
+    /// <returns>The entity if found; otherwise, <c>null</c>.</returns>
+    TEntity? GetById(long id);
+
+    /// <summary>
+    /// Finds entities matching the specified predicate.
+    /// </summary>
+    /// <param name="predicate">The filter expression.</param>
+    /// <returns>A collection of matching entities.</returns>
+    ICollection<TEntity> FindAll(Expression<Func<TEntity, bool>> predicate);
+
+    /// <summary>
+    /// Finds a single entity matching the specified predicate.
+    /// </summary>
+    /// <param name="predicate">The filter expression.</param>
+    /// <returns>The entity if found; otherwise, <c>null</c>.</returns>
+    TEntity? FindFirst(Expression<Func<TEntity, bool>> predicate);
+
+    #endregion
+
     #endregion
 
     #region Add
@@ -97,6 +147,36 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// <param name="entities">The entities to add.</param>
     /// <returns>The added entities.</returns>
     Task<ICollection<TEntity>> AddRangeAndCommitAsync(ICollection<TEntity> entities);
+
+    #endregion
+
+    #region Sync
+
+    /// <summary>
+    /// Adds a new entity to the repository.
+    /// </summary>
+    /// <param name="entity">The entity to add.</param>
+    void Add(TEntity entity);
+
+    /// <summary>
+    /// Adds a new entity and commits the changes.
+    /// </summary>
+    /// <param name="entity">The entity to add.</param>
+    /// <returns>The added entity.</returns>
+    TEntity AddAndCommit(TEntity entity);
+
+    /// <summary>
+    /// Adds a range of entities to the repository.
+    /// </summary>
+    /// <param name="entities">The entities to add.</param>
+    void AddRange(ICollection<TEntity> entities);
+
+    /// <summary>
+    /// Adds a range of entities and commits the changes.
+    /// </summary>
+    /// <param name="entities">The entities to add.</param>
+    /// <returns>The added entities.</returns>
+    ICollection<TEntity> AddRangeAndCommit(ICollection<TEntity> entities);
 
     #endregion
 
@@ -134,6 +214,36 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
 
     #endregion
 
+    #region Sync
+
+    /// <summary>
+    /// Updates an existing entity.
+    /// </summary>
+    /// <param name="entity">The entity to update.</param>
+    void Update(TEntity entity);
+
+    /// <summary>
+    /// Updates a new entity and commits the changes.
+    /// </summary>
+    /// <param name="entity">The entity to add.</param>
+    /// <returns>The updated entity.</returns>
+    TEntity UpdateAndCommit(TEntity entity);
+
+    /// <summary>
+    /// Updates a range of entities.
+    /// </summary>
+    /// <param name="entities">The entities to update.</param>
+    void UpdateRange(ICollection<TEntity> entities);
+
+    /// <summary>
+    /// Updates a range of entities and commits the changes.
+    /// </summary>
+    /// <param name="entities">The entities to update.</param>
+    /// <returns>The updated entities.</returns>
+    ICollection<TEntity> UpdateRangeAndCommit(ICollection<TEntity> entities);
+
+    #endregion
+
     #endregion
 
     #region Remove
@@ -166,6 +276,34 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
 
     #endregion
 
+    #region Sync
+
+    /// <summary>
+    /// Removes an entity by its unique identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier of the entity to remove.</param>
+    void Remove(long id);
+
+    /// <summary>
+    /// Removes an entity by its unique identifier and commits the changes.
+    /// </summary>
+    /// <param name="id">The unique identifier of the entity to remove.</param>
+    void RemoveAndCommit(long id);
+
+    /// <summary>
+    /// Removes a range of entities by its unique identifier.
+    /// </summary>
+    /// <param name="ids">The collection of unique identifiers of the entities to remove.</param>
+    void RemoveRange(params long[] ids);
+
+    /// <summary>
+    /// Removes a range of entities by its unique identifier and commits the changes.
+    /// </summary>
+    /// <param name="ids">The collection of unique identifiers of the entities to remove.</param>
+    void RemoveRangeAndCommit(params long[] ids);
+
+    #endregion
+
     #endregion
 
     #region Any
@@ -178,6 +316,17 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// <param name="predicate">The filter expression.</param>
     /// <returns><c>true</c> if any entities match; otherwise, <c>false</c>.</returns>
     Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate);
+
+    #endregion
+
+    #region Sync
+
+    /// <summary>
+    /// Determines whether any entities match the specified predicate.
+    /// </summary>
+    /// <param name="predicate">The filter expression.</param>
+    /// <returns><c>true</c> if any entities match; otherwise, <c>false</c>.</returns>
+    bool Any(Expression<Func<TEntity, bool>> predicate);
 
     #endregion
 
@@ -221,6 +370,16 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// </summary>
     /// <returns>The number of state entries written to the database.</returns>
     Task<int> CommitAsync();
+
+    #endregion
+
+    #region Sync
+
+    /// <summary>
+    /// Commits all pending changes to the data store.
+    /// </summary>
+    /// <returns>The number of state entries written to the database.</returns>
+    int Commit();
 
     #endregion
 

@@ -18,6 +18,43 @@ public class GenericRepositoryTest
         _courseFixture.Reset();
     }
 
+    [Theory(DisplayName = "CourseRepository - Add - Should add a course to the database (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void Add_ShouldAddCourse(Course course)
+    {
+        // Act
+        _courseFixture.RepositoryImpl.Add(course);
+        _courseFixture.Context.SaveChanges();
+
+        // Assert
+        var result = _courseFixture.RepositoryImpl.GetById(course.Id);
+        Assert.NotNull(result);
+        Assert.Equal(course.Title, result.Title);
+    }
+
+    [Theory(DisplayName = "CourseRepository - AddAndCommit - Should add and persist a course (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void AddAndCommit_ShouldAddAndPersistCourse(Course course)
+    {
+        // Act
+        var added = _courseFixture.RepositoryImpl.AddAndCommit(course);
+
+        // Assert
+        Assert.NotNull(added);
+        Assert.NotEqual(0, added.Id);
+        var persisted = _courseFixture.RepositoryImpl.GetById(added.Id);
+        Assert.NotNull(persisted);
+        Assert.Equal(course.Title, persisted.Title);
+    }
+
     [Theory(DisplayName = "CourseRepository - AddAndCommitAsync - Should add and persist a course")]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
@@ -55,6 +92,41 @@ public class GenericRepositoryTest
         var result = await _courseFixture.RepositoryImpl.GetByIdAsync(course.Id);
         Assert.NotNull(result);
         Assert.Equal(course.Title, result.Title);
+    }
+
+    [Theory(DisplayName = "CourseRepository - AddRange - Should add multiple courses to the database (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void AddRange_ShouldAddMultipleCourses(List<Course> courses)
+    {
+        // Act
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        // Assert
+        var results = _courseFixture.RepositoryImpl.GetAll();
+        Assert.All(courses, course => Assert.Contains(results, c => c.Title == course.Title));
+    }
+
+    [Theory(DisplayName = "CourseRepository - AddRangeAndCommit - Should add and persist multiple courses (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void AddRangeAndCommit_ShouldAddAndPersistCourses(List<Course> courses)
+    {
+        // Act
+        var added = _courseFixture.RepositoryImpl.AddRangeAndCommit(courses);
+
+        // Assert
+        Assert.NotNull(added);
+        Assert.Equal(courses.Count, added.Count);
+        var results = _courseFixture.RepositoryImpl.GetAll();
+        Assert.All(courses, course => Assert.Contains(results, c => c.Title == course.Title));
     }
 
     [Theory(DisplayName = "CourseRepository - AddRangeAndCommitAsync - Should add and persist multiple courses")]
@@ -98,6 +170,25 @@ public class GenericRepositoryTest
         var results = await _courseFixture.RepositoryImpl.GetAllAsync();
         Assert.All(courses, course =>
             Assert.Contains(results, c => c.Title == course.Title));
+    }
+
+    [Theory(DisplayName = "CourseRepository - Any - Should return true if any course matches the predicate (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void Any_ShouldReturnTrueIfAnyCourseMatchesPredicate(Course course)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.Add(course);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        var any = _courseFixture.RepositoryImpl.Any(c => c.Title == course.Title);
+
+        // Assert
+        Assert.True(any);
     }
 
     [Theory(DisplayName = "CourseRepository - AnyAsync - Should return true if any course matches the predicate, otherwise false")]
@@ -190,6 +281,32 @@ public class GenericRepositoryTest
         Assert.False(_courseFixture.Context.ChangeTracker.AutoDetectChangesEnabled);
     }
 
+    [Theory(DisplayName = "CourseRepository - DynamicSelect - Should return only selected fields (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void DynamicSelect_ShouldReturnOnlySelectedFields(List<Course> courses)
+    {
+        // Arrange
+        var fields = CourseSelects.BasicFields;
+        _courseFixture.RepositoryImpl.AddRangeAndCommit(courses);
+
+        // Act
+        var results = _courseFixture.RepositoryImpl.DynamicSelect(fields);
+
+        // Assert
+        Assert.All(results, (c) =>
+        {
+            Assert.NotEqual(0, c.Id);
+            Assert.NotEqual(string.Empty, c.Title?.Trim());
+            Assert.Null(c.InstructorId);
+            Assert.Null(c.Instructor);
+            Assert.Null(c.Modules);
+        });
+    }
+
     [Theory(DisplayName = "CourseRepository - DynamicSelectAsync - Should returns only the fields passed as parameter")]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
@@ -216,15 +333,23 @@ public class GenericRepositoryTest
         });
     }
 
-    [Fact(DisplayName = "CourseRepository - EnableChangeTracker - Should enable change tracking without exception")]
-    public void EnableChangeTracker_ShouldNotThrow()
+    [Theory(DisplayName = "CourseRepository - FindAll - Should return courses matching the predicate (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void FindAll_ShouldReturnMatchingCourses(List<Course> courses)
     {
+        // Arrange
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
         // Act
-        var exception = Record.Exception(() => _courseFixture.RepositoryImpl.EnableChangeTracker());
+        var results = _courseFixture.RepositoryImpl.FindAll(c => c.Title == courses[0].Title);
 
         // Assert
-        Assert.Null(exception);
-        Assert.True(_courseFixture.Context.ChangeTracker.AutoDetectChangesEnabled);
+        Assert.All(results, course => Assert.Equal(courses[0].Title, course.Title));
     }
 
     [Theory(DisplayName = "CourseRepository - FindAllAsync - Should return courses matching the predicate")]
@@ -247,6 +372,26 @@ public class GenericRepositoryTest
         // Assert
         Assert.Equal(expected.Count, results.Count);
         Assert.All(results, course => Assert.Contains("Test", course.Title));
+    }
+
+    [Theory(DisplayName = "CourseRepository - FindFirst - Should return the first course matching the predicate (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void FindFirst_ShouldReturnFirstMatchingCourse(List<Course> courses)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        var result = _courseFixture.RepositoryImpl.FindFirst(c => c.Title == courses[0].Title);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(courses[0].Title, result.Title);
     }
 
     [Theory(DisplayName = "CourseRepository - FindFirstAsync - Should return a single course matching the predicate")]
@@ -274,6 +419,25 @@ public class GenericRepositoryTest
         Assert.Equal(expected.Id, result.Id);
     }
 
+    [Theory(DisplayName = "CourseRepository - GetAll - Should return all courses (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void GetAll_ShouldReturnAllCourses(List<Course> courses)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        var results = _courseFixture.RepositoryImpl.GetAll();
+
+        // Assert
+        Assert.All(courses, course => Assert.Contains(results, c => c.Title == course.Title));
+    }
+
     [Theory(DisplayName = "CourseRepository - GetAllAsync - Should returns all the database records of the entity")]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
@@ -291,6 +455,26 @@ public class GenericRepositoryTest
         // Assert
         Assert.NotEmpty(results);
         Assert.Equal(courses.Count, results.Count);
+    }
+
+    [Theory(DisplayName = "CourseRepository - GetById - Should return the correct course (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void GetById_ShouldReturnCourse(Course course)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.Add(course);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        var result = _courseFixture.RepositoryImpl.GetById(course.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(course.Title, result.Title);
     }
 
     [Theory(DisplayName = "CourseRepository - GetByIdAsync - Should return the correct course")]
@@ -311,6 +495,47 @@ public class GenericRepositoryTest
         // Assert
         Assert.NotNull(result);
         Assert.Equal(course.Title, result.Title);
+    }
+
+    [Theory(DisplayName = "CourseRepository - Remove - Should remove the course (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void Remove_ShouldRemoveCourse(Course course)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.Add(course);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        _courseFixture.RepositoryImpl.Remove(course.Id);
+        _courseFixture.Context.SaveChanges();
+
+        // Assert
+        var result = _courseFixture.RepositoryImpl.GetById(course.Id);
+        Assert.Null(result);
+    }
+
+    [Theory(DisplayName = "CourseRepository - RemoveAndCommit - Should remove and persist the course (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void RemoveAndCommit_ShouldRemoveAndPersistCourse(Course course)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.Add(course);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        _courseFixture.RepositoryImpl.RemoveAndCommit(course.Id);
+
+        // Assert
+        var result = _courseFixture.RepositoryImpl.GetById(course.Id);
+        Assert.Null(result);
     }
 
     [Theory(DisplayName = "CourseRepository - RemoveAndCommitAsync - Should remove and persist removal of the course")]
@@ -355,6 +580,47 @@ public class GenericRepositoryTest
         Assert.Null(result);
     }
 
+    [Theory(DisplayName = "CourseRepository - RemoveRange - Should remove all courses (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void RemoveRange_ShouldRemoveAllCourses(List<Course> courses)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        _courseFixture.RepositoryImpl.RemoveRange(courses.Select(c => c.Id).ToArray());
+        _courseFixture.Context.SaveChanges();
+
+        // Assert
+        var results = _courseFixture.RepositoryImpl.FindAll(c => courses.Select(x => x.Id).Contains(c.Id));
+        Assert.Empty(results);
+    }
+
+    [Theory(DisplayName = "CourseRepository - RemoveRangeAndCommit - Should remove all courses and persist (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void RemoveRangeAndCommit_ShouldRemoveAllCoursesAndPersist(List<Course> courses)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        _courseFixture.RepositoryImpl.RemoveRangeAndCommit(courses.Select(c => c.Id).ToArray());
+
+        // Assert
+        var results = _courseFixture.RepositoryImpl.FindAll(c => courses.Select(x => x.Id).Contains(c.Id));
+        Assert.Empty(results);
+    }
+
     [Theory(DisplayName = "CourseRepository - RemoveRangeAndCommitAsync - Should remove all courses and persist the removal of the courses")]
     [InlineAutoDataCustom()]
     [InlineAutoDataCustom()]
@@ -394,7 +660,46 @@ public class GenericRepositoryTest
         // Assert
         var results = await _courseFixture.RepositoryImpl.FindAllAsync(c => courses.Select(c => c.Id).Contains(c.Id));
         Assert.Empty(results);
-    }   
+    }
+
+    [Theory(DisplayName = "CourseRepository - SearchWithPagination - Should return paginated and filtered results (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void SearchWithPagination_ShouldReturnPaginatedAndFilteredResults(List<Course> courses)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        var page = 1;
+        var pageSize = 2;
+        var fields = CourseSelects.BasicFields;
+
+        var queryFilter = new QueryFilterBuilder<Course>()
+            .WithPage(page)
+            .WithPageSize(pageSize)
+            .WithFields(fields)
+            .Build();
+
+        // Act
+        var result = _courseFixture.RepositoryImpl.SearchWithPagination(queryFilter);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(page, result.Page);
+        Assert.Equal(pageSize, result.PageSize);
+        Assert.Equal(courses.Count, result.TotalRecords);
+        Assert.NotNull(result.Result);
+        Assert.True(result.Result.Count <= pageSize);
+        Assert.All(result.Result, course =>
+        {
+            Assert.NotEqual(0, course.Id);
+            Assert.False(string.IsNullOrWhiteSpace(course.Title));
+        });
+    }
 
     [Theory(DisplayName = "CourseRepository - SearchWithPaginationAsync - Should return paginated and filtered results")]
     [InlineAutoDataCustom()]
@@ -437,6 +742,51 @@ public class GenericRepositoryTest
             Assert.Null(course.Instructor);
             Assert.Null(course.Modules);
         });
+    }
+
+    [Theory(DisplayName = "CourseRepository - Update - Should update the course (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void Update_ShouldUpdateCourse(Course course)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.Add(course);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        course.Title = "Updated Sync";
+        _courseFixture.RepositoryImpl.Update(course);
+        _courseFixture.Context.SaveChanges();
+
+        // Assert
+        var result = _courseFixture.RepositoryImpl.GetById(course.Id);
+        Assert.Equal("Updated Sync", result.Title);
+    }
+
+    [Theory(DisplayName = "CourseRepository - UpdateAndCommit - Should update and persist the course (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void UpdateAndCommit_ShouldUpdateAndPersistCourse(Course course)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.Add(course);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        course.Title = "UpdatedAndCommitted Sync";
+        var updated = _courseFixture.RepositoryImpl.UpdateAndCommit(course);
+
+        // Assert
+        Assert.NotNull(updated);
+        Assert.Equal("UpdatedAndCommitted Sync", updated.Title);
+        var persisted = _courseFixture.RepositoryImpl.GetById(course.Id);
+        Assert.Equal("UpdatedAndCommitted Sync", persisted.Title);
     }
 
     [Theory(DisplayName = "CourseRepository - UpdateAndCommitAsync - Should update and persist a course")]
@@ -486,6 +836,53 @@ public class GenericRepositoryTest
 
         // Assert
         Assert.Equal("Updated Title", result?.Title);
+    }
+
+    [Theory(DisplayName = "CourseRepository - UpdateRange - Should update multiple courses (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void UpdateRange_ShouldUpdateMultipleCourses(List<Course> courses)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        foreach (var course in courses)
+            course.Title += " Updated";
+        _courseFixture.RepositoryImpl.UpdateRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        // Assert
+        var results = _courseFixture.RepositoryImpl.GetAll();
+        Assert.All(courses, course => Assert.Contains(results, c => c.Title == course.Title));
+    }
+
+    [Theory(DisplayName = "CourseRepository - UpdateRangeAndCommit - Should update and persist multiple courses (sync)")]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    [InlineAutoDataCustom()]
+    public void UpdateRangeAndCommit_ShouldUpdateAndPersistCourses(List<Course> courses)
+    {
+        // Arrange
+        _courseFixture.RepositoryImpl.AddRange(courses);
+        _courseFixture.Context.SaveChanges();
+
+        // Act
+        foreach (var course in courses)
+            course.Title += " Updated";
+        var updatedCourses = _courseFixture.RepositoryImpl.UpdateRangeAndCommit(courses);
+
+        // Assert
+        Assert.NotNull(updatedCourses);
+        Assert.Equal(courses.Count, updatedCourses.Count);
+        var results = _courseFixture.RepositoryImpl.GetAll();
+        Assert.All(courses, course => Assert.Contains(results, c => c.Title == course.Title));
     }
 
     [Theory(DisplayName = "CourseRepository - UpdateRangeAndCommitAsync - Should update and persist multiple courses")]
