@@ -40,7 +40,7 @@ public class CourseRepository : GenericRepository<Course>, ICourseRepository
         );
     }
 
-    public async Task RemoveRangeCascadeAndCommitAsync(params long[] ids)
+    public async Task RemoveRangeCascadeAsync(params long[] ids)
     {
         var courses = await _dataContext.Courses
             .AsTracking()
@@ -74,8 +74,6 @@ public class CourseRepository : GenericRepository<Course>, ICourseRepository
         _context.RemoveRange(instructors);
         _context.RemoveRange(lessons);
         _context.RemoveRange(modules);
-        _context.RemoveRange(courses);
-
-        await CommitAsync();
+        _context.RemoveRange(courses);        
     }
 }

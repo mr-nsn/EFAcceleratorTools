@@ -57,26 +57,58 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     /// <inheritdoc/>
     public async Task<PaginationResult<TEntity>> SearchWithPaginationAsync(QueryFilter<TEntity> queryFilter)
     {
+        var filteredQuery = _dbSet.AsQueryable();
+
+        foreach (var filter in queryFilter.Filters)
+            filteredQuery = filteredQuery.Where(filter);
+
+        var orderedQuery = filteredQuery.OrderBy(queryFilter.OrdersAscending.First());
+        foreach (var order in queryFilter.OrdersAscending.Skip(1))
+            orderedQuery = orderedQuery.ThenBy(order);
+
+        orderedQuery = queryFilter.OrdersDescending.Count > 0 ? orderedQuery.ThenByDescending(queryFilter.OrdersDescending.First()) : orderedQuery;
+        foreach (var order in queryFilter.OrdersDescending.Skip(1))
+            orderedQuery = orderedQuery.ThenByDescending(order);
+
         return _trackingEnabled
-            ? await _dbSet
+            ? await orderedQuery
                 .DynamicSelect(queryFilter.Fields)
-                .OrderBy(x => x.Id)
                 .GetPagination(queryFilter)
                 .ToPaginationResultListAsync()
-            : await _dbSet
+            : await orderedQuery
                 .AsNoTracking()
                 .DynamicSelect(queryFilter.Fields)
-                .OrderBy(x => x.Id)
                 .GetPagination(queryFilter)
                 .ToPaginationResultListAsync();
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ICollection<TEntity>> DynamicSelectAsync(params KeyOf<TEntity>[] fields)
+    public virtual async Task<ICollection<TEntity>> DynamicSelectAsync(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params KeyOf<TEntity>[] fields)
     {
+        if (filters is null) filters = new List<Expression<Func<TEntity, bool>>> { _ => true };
+        if (orders is null) orders = new List<Expression<Func<TEntity, object?>>> { x => x.Id };
+
+        var filteredQuery = _dbSet.AsQueryable();
+
+        foreach (var filter in filters)
+            filteredQuery = filteredQuery.Where(filter);
+
+        var orderedQuery = filteredQuery.OrderBy(orders.First());
+        foreach (var order in orders.Skip(1))
+            orderedQuery = orderedQuery.ThenBy(order);
+
+        orderedQuery = orders.Count > 0 ? orderedQuery.ThenByDescending(orders.First()) : orderedQuery;
+        foreach (var order in orders.Skip(1))
+            orderedQuery = orderedQuery.ThenByDescending(order);
+
         return _trackingEnabled
-            ? await _dbSet.DynamicSelect(fields).ToListAsync()
-            : await _dbSet.AsNoTracking().DynamicSelect(fields).ToListAsync();
+            ? await orderedQuery
+                .DynamicSelect(fields)
+                .ToListAsync()
+            : await orderedQuery
+                .AsNoTracking()
+                .DynamicSelect(fields)
+                .ToListAsync();
     }
 
     /// <inheritdoc/>
@@ -118,26 +150,58 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     /// <inheritdoc/>
     public PaginationResult<TEntity> SearchWithPagination(QueryFilter<TEntity> queryFilter)
     {
+        var filteredQuery = _dbSet.AsQueryable();
+
+        foreach (var filter in queryFilter.Filters)
+            filteredQuery = filteredQuery.Where(filter);
+
+        var orderedQuery = filteredQuery.OrderBy(queryFilter.OrdersAscending.First());
+        foreach (var order in queryFilter.OrdersAscending.Skip(1))
+            orderedQuery = orderedQuery.ThenBy(order);
+
+        orderedQuery = queryFilter.OrdersDescending.Count > 0 ? orderedQuery.ThenByDescending(queryFilter.OrdersDescending.First()) : orderedQuery;
+        foreach (var order in queryFilter.OrdersDescending.Skip(1))
+            orderedQuery = orderedQuery.ThenByDescending(order);
+
         return _trackingEnabled
-            ? _dbSet
+            ? orderedQuery
                 .DynamicSelect(queryFilter.Fields)
-                .OrderBy(x => x.Id)
                 .GetPagination(queryFilter)
                 .ToPaginationResultList()
-            : _dbSet
+            : orderedQuery
                 .AsNoTracking()
                 .DynamicSelect(queryFilter.Fields)
-                .OrderBy(x => x.Id)
                 .GetPagination(queryFilter)
                 .ToPaginationResultList();
     }
 
     /// <inheritdoc/>
-    public virtual ICollection<TEntity> DynamicSelect(params KeyOf<TEntity>[] fields)
+    public virtual ICollection<TEntity> DynamicSelect(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params KeyOf<TEntity>[] fields)
     {
+        if (filters is null) filters = new List<Expression<Func<TEntity, bool>>> { _ => true };
+        if (orders is null) orders = new List<Expression<Func<TEntity, object?>>> { x => x.Id };
+
+        var filteredQuery = _dbSet.AsQueryable();
+
+        foreach (var filter in filters)
+            filteredQuery = filteredQuery.Where(filter);
+
+        var orderedQuery = filteredQuery.OrderBy(orders.First());
+        foreach (var order in orders.Skip(1))
+            orderedQuery = orderedQuery.ThenBy(order);
+
+        orderedQuery = orders.Count > 0 ? orderedQuery.ThenByDescending(orders.First()) : orderedQuery;
+        foreach (var order in orders.Skip(1))
+            orderedQuery = orderedQuery.ThenByDescending(order);
+
         return _trackingEnabled
-            ? _dbSet.DynamicSelect(fields).ToList()
-            : _dbSet.AsNoTracking().DynamicSelect(fields).ToList();
+            ? orderedQuery                
+                .DynamicSelect(fields)
+                .ToList()
+            : orderedQuery
+                .AsNoTracking()
+                .DynamicSelect(fields)
+                .ToList();
     }
 
     /// <inheritdoc/>
