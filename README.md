@@ -36,11 +36,13 @@ dotnet add package EFAcceleratorTools --version 1.0.1
 Tired of `Include` and `ThenInclude` everything? With `DynamicSelect`, you can easily project only the properties you need, without the overhead of loading entire entities and without having to make the `Select` manually each time.
 You can simply add the fields you want for each relationship and the library will handle the rest. It supports simple properties and nested complex relationships, including Collections.
 
+It includes filtering and ordering capabilities too.
+
 Bonus Tip: Enable `NullValueHandling = NullValueHandling.Ignore` in `Newtonsoft.Json` serialization or similars to have a GraphQL like solution for your REST APIs.
 ```csharp
 // You can select simple properties of the entity
 var courses = await _context.Courses
-    .DynamicSelect(nameof(Course.Id), nameof(Course.Title))
+    .DynamicSelect(filters: default, orders: default, nameof(Course.Id), nameof(Course.Title))
     .ToListAsync();
 
 // And you can select complex properties, including collections
@@ -76,9 +78,9 @@ var courses = await _context.Courses
 
 ### Pagination
 
-Effortlessly paginate your queries:
+Effortlessly paginate your queries, with filtering and ordering capabilities:
 ```csharp
-var queryFilter = new QueryFilterBuilder<Course>()
+var queryFilter = new QueryFilterBuilder<Course>(c => c.Id)
     .WithPage(1)
     .WithPageSize(100)
     .WithFields(SelectsDefaults<Course>.BasicFields)

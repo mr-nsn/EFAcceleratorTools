@@ -31,11 +31,13 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     Task<PaginationResult<TEntity>> SearchWithPaginationAsync(QueryFilter<TEntity> queryFilter);
 
     /// <summary>
-    /// Asynchronously selects specific fields from the entity set.
+    /// Asynchronously projects entities including only the specified fields, optionally applying filters and ordering.
     /// </summary>
-    /// <param name="fields">The names of the fields to select.</param>
-    /// <returns>A collection of entities with the specified fields populated.</returns>
-    Task<ICollection<TEntity>> DynamicSelectAsync(params KeyOf<TEntity>[] fields);
+    /// <param name="filters">Optional filter predicates to apply before projection. If null, no additional filters are applied.</param>
+    /// <param name="orders">Optional ordering expressions applied in sequence. If null, no additional ordering is applied.</param>
+    /// <param name="fields">The fields to include in the projection, specified as <see cref="KeyOf{TEntity}"/>.</param>
+    /// <returns>A task that returns a collection of projected entities.</returns>
+    Task<ICollection<TEntity>> DynamicSelectAsync(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params KeyOf<TEntity>[] fields);
 
     /// <summary>
     /// Asynchronously retrieves all entities.
@@ -81,11 +83,13 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     PaginationResult<TEntity> SearchWithPagination(QueryFilter<TEntity> queryFilter);
 
     /// <summary>
-    /// Selects specific fields from the entity set.
+    /// Projects entities including only the specified fields, optionally applying filters and ordering.
     /// </summary>
-    /// <param name="fields">The names of the fields to select.</param>
-    /// <returns>A collection of entities with the specified fields populated.</returns>
-    ICollection<TEntity> DynamicSelect(params KeyOf<TEntity>[] fields);
+    /// <param name="filters">Optional filter predicates to apply before projection. If null, no additional filters are applied.</param>
+    /// <param name="orders">Optional ordering expressions applied in sequence. If null, no additional ordering is applied.</param>
+    /// <param name="fields">The fields to include in the projection, specified as <see cref="KeyOf{TEntity}"/>.</param>
+    /// <returns>A collection of projected entities.</returns>
+    ICollection<TEntity> DynamicSelect(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params KeyOf<TEntity>[] fields);
 
     /// <summary>
     /// Retrieves all entities.

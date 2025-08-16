@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using System.Linq.Expressions;
 
 public class Program
 {
@@ -47,9 +48,12 @@ public class Program
         var nextSample = 0;
 
         // Example: SearchWithPaginationAsync
-        var queryFilter = new QueryFilterBuilder<Course>()
+        var queryFilter = new QueryFilterBuilder<Course>(c => c.Title)
             .WithPage(1)
-            .WithPageSize(2)
+            .WithPageSize(5)
+            .WithFilter(c => !string.IsNullOrWhiteSpace(c.Title))
+            .WithOrderAscending(c => c.CreatedAt)
+            .WithOrderDescending(c => c.InstructorId)
             .WithFields(SelectsDefaults<Course>.BasicFields)
             .Build();
         Console.WriteLine();
@@ -64,9 +68,13 @@ public class Program
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
         Console.WriteLine();
         Console.WriteLine("DynamicSelectAsync:");
-        var selectedCourses = _courseRepository.DynamicSelect(nameof(Course.Title), nameof(Course.Id));
+        var selectedCourses = await _courseRepository.DynamicSelectAsync(
+            filters: new List<Expression<Func<Course, bool>>> { c => !string.IsNullOrWhiteSpace(c.Title) },
+            orders: new List<Expression<Func<Course, object?>>> { c => c.Id },
+            nameof(Course.Title), nameof(Course.Id)
+        );
         Console.WriteLine(JsonConvert.SerializeObject(selectedCourses, jsonSettings));
-        
+
         // Example: GetAllAsync
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -74,7 +82,7 @@ public class Program
         Console.WriteLine("GetAllAsync:");
         var allCourses = await _courseRepository.GetAllAsync();
         Console.WriteLine(JsonConvert.SerializeObject(allCourses, jsonSettings));
-        
+
         // Example: GetByIdAsync
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -82,7 +90,7 @@ public class Program
         Console.WriteLine("GetByIdAsync:");
         var courseById = await _courseRepository.GetByIdAsync(originalCourses.ToList()[0].Id);
         Console.WriteLine(JsonConvert.SerializeObject(courseById, jsonSettings));
-        
+
         // Example: FindAllAsync
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -90,7 +98,7 @@ public class Program
         Console.WriteLine("FindAllAsync:");
         var coursesWithTitle = await _courseRepository.FindAllAsync(c => c.Title != null && c.Title.Contains("C#"));
         Console.WriteLine(JsonConvert.SerializeObject(coursesWithTitle, jsonSettings));
-        
+
         // Example: FindFirstAsync
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -98,7 +106,7 @@ public class Program
         Console.WriteLine("FindFirstAsync:");
         var firstCourse = await _courseRepository.FindFirstAsync(c => c.Title != null && c.Title.StartsWith("Intro"));
         Console.WriteLine(JsonConvert.SerializeObject(firstCourse, jsonSettings));
-        
+
         // Example: AddAsync
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -106,7 +114,7 @@ public class Program
         var newCourse = sampleCourses[nextSample];
         await _courseRepository.AddAsync(newCourse);
         Console.WriteLine("AddAsync: Course added (not committed)");
-        
+
         // Example: AddAndCommitAsync
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -122,7 +130,7 @@ public class Program
         var coursesToAdd = sampleCourses.Slice(nextSample++, 3);
         await _courseRepository.AddRangeAsync(coursesToAdd);
         Console.WriteLine("AddRangeAsync: Courses added (not committed)");
-        
+
         // Example: AddRangeAndCommitAsync
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -130,7 +138,7 @@ public class Program
         Console.WriteLine("AddRangeAndCommitAsync:");
         var committedCourses = await _courseRepository.AddRangeAndCommitAsync(sampleCourses.Slice(nextSample++, 3));
         Console.WriteLine(JsonConvert.SerializeObject(committedCourses, jsonSettings));
-        
+
         // Example: UpdateAsync
         if (courseById != null)
         {
@@ -160,7 +168,7 @@ public class Program
         Console.WriteLine();
         await _courseRepository.UpdateRangeAsync(coursesToAdd);
         Console.WriteLine("UpdateRangeAsync: Courses updated (not committed)");
-        
+
         // Example: UpdateRangeAndCommitAsync
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -185,7 +193,7 @@ public class Program
         Console.WriteLine();
         bool anyCourse = await _courseRepository.AnyAsync(c => c.Title == "Course 1");
         Console.WriteLine($"AnyAsync: Is there a course with title 'Course 1'? {anyCourse}");
-        
+
         // Example: Detach
         if (courseById != null)
         {
@@ -223,7 +231,7 @@ public class Program
         Console.WriteLine();
         int changes = await _courseRepository.CommitAsync();
         Console.WriteLine($"CommitAsync: {changes} changes saved");
-        
+
         // Example: MassiveQueryAsync (specific method of ICourseRepository)
         Console.WriteLine();
         Console.WriteLine("------------------------------------------------------------------------------------------------------------");
@@ -236,8 +244,9 @@ public class Program
         var allAfterExamples = await _courseRepository.GetAllAsync();
         var addedCourses = allAfterExamples.Where(c => !originalIds.Contains(c.Id)).ToList();
                 
-        await _courseRepository.RemoveRangeCascadeAndCommitAsync(addedCourses.Select(x => x.Id).ToArray());
-        Console.WriteLine();
+        await _courseRepository.RemoveRangeCascadeAsync(addedCourses.Select(x => x.Id).ToArray());
+        changes = await _courseRepository.CommitAsync();
+        Console.WriteLine($"Cleanup: {changes} changes saved");
         Console.WriteLine("Cleanup: All courses added during the examples have been removed.");
     }
 

@@ -294,7 +294,7 @@ public class GenericRepositoryTest
         _courseFixture.RepositoryImpl.AddRangeAndCommit(courses);
 
         // Act
-        var results = _courseFixture.RepositoryImpl.DynamicSelect(fields);
+        var results = _courseFixture.RepositoryImpl.DynamicSelect(filters: default, orders: default, fields);
 
         // Assert
         Assert.All(results, (c) =>
@@ -320,7 +320,7 @@ public class GenericRepositoryTest
         await _courseFixture.RepositoryImpl.AddRangeAndCommitAsync(courses);
 
         // Act
-        var results = await _courseFixture.RepositoryImpl.DynamicSelectAsync(fields);
+        var results = await _courseFixture.RepositoryImpl.DynamicSelectAsync(filters: default, orders: default, fields);
 
         // Assert
         Assert.All(results, (c) =>
@@ -678,7 +678,7 @@ public class GenericRepositoryTest
         var pageSize = 2;
         var fields = CourseSelects.BasicFields;
 
-        var queryFilter = new QueryFilterBuilder<Course>()
+        var queryFilter = new QueryFilterBuilder<Course>(c => c.Id)
             .WithPage(page)
             .WithPageSize(pageSize)
             .WithFields(fields)
@@ -716,7 +716,7 @@ public class GenericRepositoryTest
         var pageSize = 2;
         var fields = CourseSelects.BasicFields;
 
-        var queryFilter = new QueryFilterBuilder<Course>()
+        var queryFilter = new QueryFilterBuilder<Course>(c => c.Id)
             .WithPage(page)
             .WithPageSize(pageSize)
             .WithFields(fields)
