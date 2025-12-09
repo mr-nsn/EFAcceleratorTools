@@ -1,14 +1,19 @@
-﻿using EFAcceleratorTools.Examples.Domain.Aggregates.Courses;
+﻿using Apparatus.AOT.Reflection;
+using EFAcceleratorTools.DataTables;
+using EFAcceleratorTools.Examples.Domain.Aggregates.Courses;
+using EFAcceleratorTools.Examples.Domain.Aggregates.Instructors;
 using EFAcceleratorTools.Examples.Infrastructure.Data;
 using EFAcceleratorTools.Examples.Infrastructure.Data.Context;
 using EFAcceleratorTools.Examples.Infrastructure.Data.Repositories.Aggregates.Courses;
 using EFAcceleratorTools.Examples.Infrastructure.IoC;
 using EFAcceleratorTools.Models.Builders;
 using EFAcceleratorTools.Select.Defaults;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using System.Data;
 using System.Linq.Expressions;
 
 public class Program
@@ -24,14 +29,14 @@ public class Program
     public static async Task Main(string[] args)
     {
         var host = CreateHostBuilder(args).Build();
-        
+
         var context = host.Services.GetRequiredService<DataContext>();
         await DbInitializer.SeedAsync(context);
 
-        await host.Services.GetRequiredService<Program>().RunAsync();
+        await host.Services.GetRequiredService<Program>().RunAsync(context);
     }
 
-    public async Task RunAsync()
+    public async Task RunAsync(DataContext context)
     {
         var jsonSettings = new JsonSerializerSettings
         {
@@ -240,11 +245,53 @@ public class Program
         var massiveResult = await _courseRepository.MassiveQueryAsync();
         Console.WriteLine(JsonConvert.SerializeObject(massiveResult, jsonSettings));
 
+        // Example: ToDataTable
+        Console.WriteLine();
+        Console.WriteLine("------------------------------------------------------------------------------------------------------------");
+        Console.WriteLine();
+        Console.WriteLine("ToDataTable:");
+        var columnsOrder = new Dictionary<string, int>()
+        {
+            { "Id", 0 },
+            { "FullName", 1 },
+            { "CreatedAt", 2 }
+        };
+
+        var instructorProc = new Instructor
+        {
+            FullName = "Instructor PROC"
+        };
+
+        var instructorDataTable = new List<Instructor>
+        {
+            instructorProc
+        }.ToDataTable(columnsOrder, context);
+        Console.WriteLine(JsonConvert.SerializeObject(instructorDataTable.Rows, jsonSettings));
+
+        var parametersAdd = new SqlParameter[]
+        {
+            new SqlParameter("@INSTRUCTORS", SqlDbType.Structured)
+            {
+                TypeName = "dbo.TP_TB_INSTRUCTOR",
+                Value = instructorDataTable
+            }
+        };
+
+        //await context.Database.ExecuteSqlRawAsync($"EXEC [dbo].[USP_ADD_INSTRUCTOR] " + $"@INSTRUCTORS", parametersAdd);
+
+        //var parametersRemove = new SqlParameter[]
+        //{
+        //    new SqlParameter("@FULLNAME", instructorProc.FullName)
+        //};
+
+        //await context.Database.ExecuteSqlRawAsync($"EXEC [dbo].[USP_REMOVE_INSTRUCTOR] " + $"@FULLNAME", parametersRemove);
+
         // Cleanup: Remove all courses added during the examples ---
         var allAfterExamples = await _courseRepository.GetAllAsync();
         var addedCourses = allAfterExamples.Where(c => !originalIds.Contains(c.Id)).ToList();
-                
-        await _courseRepository.RemoveRangeCascadeAsync(addedCourses.Select(x => x.Id).ToArray());
+
+        await _courseRepository.RemoveRangeCascadeAsync(addedCourses.Select(x => x.Id).ToArray());        
+
         changes = await _courseRepository.CommitAsync();
         Console.WriteLine($"Cleanup: {changes} changes saved");
         Console.WriteLine("Cleanup: All courses added during the examples have been removed.");
@@ -263,5 +310,5 @@ public class Program
             {
                 services.RegisterServices(config);
             });
-    }  
+    }
 }
