@@ -17,6 +17,7 @@ EFAcceleratorTools is a .NET library designed to enhance productivity and perfor
 - 🗺️ **Simplified Entity Mapping** – Easily configure and manage entity mappings for your domain models.
 - 📦 **Generic Repository** – Reusable, extensible repository pattern for CRUD operations and advanced queries.
 - 🔧 **Extensible & Lightweight** – Designed to be modular and easy to integrate.
+- 🗃️ **Easy DataTable creation**, from Lists, for procedures and raw SQL queries.
 - More features coming soon!
 
 ---
@@ -25,7 +26,7 @@ EFAcceleratorTools is a .NET library designed to enhance productivity and perfor
 
 Install via NuGet:
 ``` bash
-dotnet add package EFAcceleratorTools --version 1.0.1
+dotnet add package EFAcceleratorTools --version 2.0.1
 ```
 ---
 
@@ -188,6 +189,21 @@ public class CourseRepository : GenericRepository<Course>, ICourseRepository
 
 var allCourses = await _courseRepository.GetAllAsync();
 ```
+
+### DataTable Creation
+Easily create DataTables, from Lists, for use in stored procedures and raw SQL queries:
+```csharp
+var columnsOrder = new Dictionary<KeyOf<Course>, int>()
+{
+    { "Id", 0 },
+    { "InstructorId", 1 },
+    { "Title", 2 }
+};
+var courses = await _courseRepository.GetAllAsync();
+var dataTable = courses.ToDataTable(columnsOrder, context);
+```
+
+#### Obs: The type list must be mapped in the context!
 
 ---
 

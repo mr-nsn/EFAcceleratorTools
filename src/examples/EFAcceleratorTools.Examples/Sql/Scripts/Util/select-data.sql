@@ -3,11 +3,11 @@
 from
 	TB_COURSE a
 left join
+	TB_INSTRUCTOR b on a.SQ_INSTRUCTOR = b.SQ_INSTRUCTOR
+left join
 	TB_MODULE c on a.SQ_COURSE = c.SQ_COURSE
 left join
 	TB_LESSON d on c.SQ_MODULE = d.SQ_MODULE
-left join
-	TB_INSTRUCTOR b on a.SQ_INSTRUCTOR = b.SQ_INSTRUCTOR
 left join
 	TB_PROFILE e on b.SQ_INSTRUCTOR = e.SQ_INSTRUCTOR;
 
