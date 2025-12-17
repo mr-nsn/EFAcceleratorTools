@@ -9,6 +9,12 @@ EFAcceleratorTools is a .NET library designed to enhance productivity and perfor
 
 ---
 
+## Note
+If you enjoy using EFAcceleratorTools, please checkout the new toolkit for Clean Architecture implementation project [CleanArchAcceleratorTools](https://github.com/mr-nsn/CleanArchAcceleratorTools). All EFAcceleratorTools features are also available there, along with additional utilities for building Clean Architecture applications.
+This project probably will not receive many new features in the future, as the main focus is now on CleanArchAcceleratorTools. However, critical bug fixes and maintenance updates may still be provided.
+
+---
+
 ## ✨ Features
 
 - 🧠 **Dynamic Selects** – Project typed objects based on property names.
