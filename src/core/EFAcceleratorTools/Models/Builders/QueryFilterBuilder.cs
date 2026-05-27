@@ -1,5 +1,4 @@
-﻿using Apparatus.AOT.Reflection;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace EFAcceleratorTools.Models.Builders;
 
@@ -118,7 +117,7 @@ public class QueryFilterBuilder<T> where T : Entity
     /// </summary>
     /// <param name="fields">The fields to include, specified as <see cref="KeyOf{T}"/> values.</param>
     /// <returns>The current builder instance.</returns>
-    public QueryFilterBuilder<T> WithFields(params KeyOf<T>[] fields)
+    public QueryFilterBuilder<T> WithFields(params string[] fields)
     {
         _queryFilter.SetFields(fields);
         return this;

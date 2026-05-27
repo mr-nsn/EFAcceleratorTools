@@ -1,5 +1,4 @@
-﻿using Apparatus.AOT.Reflection;
-using EFAcceleratorTools.Select.Defaults;
+﻿using EFAcceleratorTools.Select.Defaults;
 using System.Linq.Expressions;
 
 namespace EFAcceleratorTools.Models;
@@ -39,7 +38,7 @@ public class QueryFilter<T> where T : Entity
     /// <summary>
     /// Gets the fields to be selected in the query, specified as <see cref="KeyOf{T}"/> values.
     /// </summary>
-    public KeyOf<T>[] Fields { get; private set; }
+    public string[] Fields { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QueryFilter{T}"/> class with default values.
@@ -155,7 +154,7 @@ public class QueryFilter<T> where T : Entity
     /// </summary>
     /// <param name="fields">The fields to include, specified as <see cref="KeyOf{T}"/> values. Cannot be null or empty.</param>
     /// <exception cref="ArgumentException">Thrown if <paramref name="fields"/> is null or empty.</exception>
-    public void SetFields(params KeyOf<T>[] fields)
+    public void SetFields(params string[] fields)
     {
         if (fields == null || fields.Length == 0) throw new ArgumentException("Fields cannot be null or empty.", nameof(fields));
         Fields = fields;

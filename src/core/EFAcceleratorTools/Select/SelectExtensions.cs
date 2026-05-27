@@ -1,5 +1,4 @@
-﻿using Apparatus.AOT.Reflection;
-using EFAcceleratorTools.Select.Helpers;
+﻿using EFAcceleratorTools.Select.Helpers;
 
 namespace EFAcceleratorTools.Select;
 
@@ -18,8 +17,8 @@ public static class SelectExtensions
     /// An <see cref="IQueryable{T}"/> that, when enumerated, will return objects of type <typeparamref name="T"/> with only the specified fields populated.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="fields"/> is null or empty.</exception>
-    public static IQueryable<T> DynamicSelect<T>(this IQueryable<T> query, params KeyOf<T>[] fields) where T : class
+    public static IQueryable<T> DynamicSelect<T>(this IQueryable<T> query, params string[] fields) where T : class
     {
-        return query.Select(SelectHelper.DynamicSelectGenerator<T>(fields.Select(f => f.Value).ToArray()));
+        return query.Select(SelectHelper.DynamicSelectGenerator<T>(fields));
     }
 }

@@ -1,4 +1,3 @@
-using Apparatus.AOT.Reflection;
 using EFAcceleratorTools.DataTables;
 using EFAcceleratorTools.Examples.Domain.Aggregates.Courses;
 using EFAcceleratorTools.Test.Customization;

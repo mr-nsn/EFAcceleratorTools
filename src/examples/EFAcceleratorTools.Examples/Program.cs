@@ -1,5 +1,4 @@
-﻿using Apparatus.AOT.Reflection;
-using EFAcceleratorTools.DataTables;
+﻿using EFAcceleratorTools.DataTables;
 using EFAcceleratorTools.Examples.Domain.Aggregates.Courses;
 using EFAcceleratorTools.Examples.Domain.Aggregates.Instructors;
 using EFAcceleratorTools.Examples.Infrastructure.Data;

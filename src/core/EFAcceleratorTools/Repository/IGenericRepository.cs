@@ -1,5 +1,4 @@
-﻿using Apparatus.AOT.Reflection;
-using EFAcceleratorTools.Models;
+﻿using EFAcceleratorTools.Models;
 using System.Linq.Expressions;
 
 namespace EFAcceleratorTools.Repository;
@@ -35,9 +34,9 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// </summary>
     /// <param name="filters">Optional filter predicates to apply before projection. If null, no additional filters are applied.</param>
     /// <param name="orders">Optional ordering expressions applied in sequence. If null, no additional ordering is applied.</param>
-    /// <param name="fields">The fields to include in the projection, specified as <see cref="KeyOf{TEntity}"/>.</param>
+    /// <param name="fields">The fields to include in the projection, specified as strings.</param>
     /// <returns>A task that returns a collection of projected entities.</returns>
-    Task<ICollection<TEntity>> DynamicSelectAsync(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params KeyOf<TEntity>[] fields);
+    Task<ICollection<TEntity>> DynamicSelectAsync(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params string[] fields);
 
     /// <summary>
     /// Asynchronously retrieves all entities.
@@ -87,9 +86,9 @@ public interface IGenericRepository<TEntity> : IDisposable where TEntity : Entit
     /// </summary>
     /// <param name="filters">Optional filter predicates to apply before projection. If null, no additional filters are applied.</param>
     /// <param name="orders">Optional ordering expressions applied in sequence. If null, no additional ordering is applied.</param>
-    /// <param name="fields">The fields to include in the projection, specified as <see cref="KeyOf{TEntity}"/>.</param>
+    /// <param name="fields">The fields to include in the projection, specified as strings.</param>
     /// <returns>A collection of projected entities.</returns>
-    ICollection<TEntity> DynamicSelect(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params KeyOf<TEntity>[] fields);
+    ICollection<TEntity> DynamicSelect(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params string[] fields);
 
     /// <summary>
     /// Retrieves all entities.

@@ -1,5 +1,4 @@
-﻿using Apparatus.AOT.Reflection;
-using EFAcceleratorTools.Models;
+﻿using EFAcceleratorTools.Models;
 using EFAcceleratorTools.Pagination;
 using EFAcceleratorTools.Select;
 using Microsoft.EntityFrameworkCore;
@@ -83,7 +82,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     }
 
     /// <inheritdoc/>
-    public virtual async Task<ICollection<TEntity>> DynamicSelectAsync(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params KeyOf<TEntity>[] fields)
+    public virtual async Task<ICollection<TEntity>> DynamicSelectAsync(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params string[] fields)
     {
         if (filters is null) filters = new List<Expression<Func<TEntity, bool>>> { _ => true };
         if (orders is null) orders = new List<Expression<Func<TEntity, object?>>> { x => x.Id };
@@ -176,7 +175,7 @@ public abstract class GenericRepository<TEntity> : IGenericRepository<TEntity> w
     }
 
     /// <inheritdoc/>
-    public virtual ICollection<TEntity> DynamicSelect(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params KeyOf<TEntity>[] fields)
+    public virtual ICollection<TEntity> DynamicSelect(ICollection<Expression<Func<TEntity, bool>>>? filters = null, ICollection<Expression<Func<TEntity, object?>>>? orders = null, params string[] fields)
     {
         if (filters is null) filters = new List<Expression<Func<TEntity, bool>>> { _ => true };
         if (orders is null) orders = new List<Expression<Func<TEntity, object?>>> { x => x.Id };
